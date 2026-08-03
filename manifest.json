@@ -1,0 +1,13 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Fccollegenetwork",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Fccollge",
+  "start_url": "https://fc-college-network.netlify.app",
+  "theme_color": "#ffffff",
+  "id": "Fccollegenetwork",
+  "description": "FC College Network is the official student & faculty platform for staying connected on campus. Create your digital ID card, share updates and posts, chat with classmates and teachers, and discover profiles across the college — all in one secure app."
+}
