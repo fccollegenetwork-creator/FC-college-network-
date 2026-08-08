@@ -321,6 +321,80 @@ const CLOUDINARY_UPLOAD_PRESET = 'Ffcupload';
    hai, isliye ise sirf trusted staff ke saath share karein. */
 const ADMIN_CODE = 'FFC-STAFF-2026';
 
+/* ===== Passing-year auto account close (Part 1 — free, bina card ke) =====
+   Sirf Class 12 (final year) students ke liye admin whitelist mein
+   "passing year" (jaise 2027, 2028) daala ja sakta hai. Us saal ki is
+   neeche di gayi cutoff date (result aane ke baad ka buffer) ke baad,
+   jab bhi wo student agli baar app kholega/login karega, uski Firestore
+   profile khud-ba-khud delete ho jaayegi — aur maujooda "account nahi
+   mila" logic (fetchProfiles mein) use turant logout kar dega. Yeh
+   poora kaam client-side hi hota hai, koi paid Firebase feature (Cloud
+   Functions/Blaze) ki zaroorat nahi.
+
+   Cutoff badalne ke liye bas neeche wale 2 number badal dijiye —
+   MONTH 0-indexed hai (0=Jan ... 6=July). Default: passing year ke
+   July month ki 1 tareekh (zyadatar college results May-June tak aa
+   jaate hain, isliye July tak sabko kaafi buffer mil jaata hai). */
+const PASS_YEAR_CUTOFF_MONTH = 6; // 6 = July
+const PASS_YEAR_CUTOFF_DAY = 1;
+
+function isPassYearExpired(passYear){
+  const py = parseInt(passYear, 10);
+  if (!py) return false;
+  const cutoff = new Date(py, PASS_YEAR_CUTOFF_MONTH, PASS_YEAR_CUTOFF_DAY).getTime();
+  return Date.now() >= cutoff;
+}
+
+/* ===== Daily screen-time limit (students only) =====
+   Yeh purely is device/browser ke localStorage mein track hoti hai —
+   Firestore mein kuch nahi likha jaata, isliye na koi extra read/write
+   cost hai na kisi security-rule ki zaroorat. Matlab: agar student
+   phone aur laptop dono se use kare to dono jagah alag-alag 1h30m
+   milega (cross-device ek saath track karna Firestore writes maangta,
+   jo free plan par mehenga pad sakta tha) — school-scale reminder ke
+   liye yeh kaafi hai.
+   Limit badalni ho to bas neeche wala minute number badal dijiye. */
+const DAILY_USAGE_LIMIT_MINUTES = 90;
+let usageTickTimer = null;
+
+function usageStorageKey(){
+  return `ffc_usage_${state.session}_${todayStr()}`;
+}
+function getUsageSeconds(){
+  if (!state.session) return 0;
+  return parseInt(localStorage.getItem(usageStorageKey()) || '0', 10) || 0;
+}
+function addUsageSeconds(sec){
+  if (!state.session) return 0;
+  const next = getUsageSeconds() + sec;
+  try { localStorage.setItem(usageStorageKey(), String(next)); } catch(e){}
+  return next;
+}
+function isTimeLimitReached(){
+  return getUsageSeconds() >= DAILY_USAGE_LIMIT_MINUTES * 60;
+}
+/* Har 30 second mein 30 second jod dete hain — sirf jab tab visible ho
+   aur session ek student ka ho (admin/staff par yeh limit nahi lagti). */
+function usageTick(){
+  const me = state.profiles[state.session];
+  if (!state.session || !me || me.role !== 'student') return;
+  const total = addUsageSeconds(30);
+  const wasReached = state.timeLimitReached;
+  state.timeLimitReached = total >= DAILY_USAGE_LIMIT_MINUTES * 60;
+  if (state.timeLimitReached && !wasReached) render();
+}
+function startUsageTimer(){
+  stopUsageTimer();
+  if (!state.session) return;
+  const me = state.profiles[state.session];
+  state.timeLimitReached = me && me.role === 'student' ? isTimeLimitReached() : false;
+  usageTickTimer = setInterval(usageTick, 30000);
+}
+function stopUsageTimer(){
+  if (usageTickTimer) clearInterval(usageTickTimer);
+  usageTickTimer = null;
+}
+
 /* ID card <-> pseudo-email, kyunki Firebase Auth email/password maangta hai */
 function emailForId(id){ return id.toLowerCase() + '@ffc-network.app'; }
 function idFromEmail(email){ return (email || '').split('@')[0].toUpperCase(); }
@@ -380,10 +454,25 @@ async function fetchProfiles(){
        jaata — user ko pata hi nahi chalta kya karein. Isliye yahan check
        karke, khud logout karke ek saaf message ke saath login screen par
        bhej dete hain. */
+    /* Apni khud ki profile ka passing-year check — sirf apna account hi
+       delete karte hain (kabhi kisi doosre student ka nahi), taaki
+       Firestore Security Rules mein "sirf apni hi profile delete kar
+       sakta hai" wala restriction bhi lagaya ja sake bina kisi feature
+       ke tootne ke. */
+    const mine = next[state.session];
+    if (state.session && mine && mine.role === 'student' && isPassYearExpired(mine.passYear)){
+      try { await db.collection('profiles').doc(state.session).delete(); } catch(e){}
+      await auth.signOut();
+      state.authError = 'Aapka passing year complete ho chuka hai, isliye account automatically band ho gaya hai. Naya session shuru karne ke liye dobara Sign Up karein.';
+      return render();
+    }
     if (state.session && !next[state.session]){
       await auth.signOut();
       state.authError = 'Aapka account nahi mila (delete ho gaya hai ya reset hua hai). Dobara Sign Up karein.';
       return render();
+    }
+    if (state.session && mine && mine.role === 'student'){
+      state.timeLimitReached = isTimeLimitReached();
     }
     render();
   } catch(e){}
@@ -448,10 +537,12 @@ function handleVisibilityChange(){
   if (!state.session) return;
   if (document.hidden) {
     stopBackgroundRefresh();
+    stopUsageTimer();
   } else {
     fetchProfiles();
     fetchFeed();
     startBackgroundRefresh();
+    startUsageTimer();
   }
 }
 document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -806,6 +897,7 @@ const state = {
   profiles: {},
   feed: [],
   session: null,
+  timeLimitReached: false,
   authMode: 'login',
   authForm: { idCard:'', password:'', name:'', klass:'', section:'A', subject:'', photo:'', role:'student', adminCode:'' },
   authError: '',
@@ -815,6 +907,7 @@ const state = {
   adminAddId: '',
   adminAddClass: '',
   adminAddSection: 'A',
+  adminAddPassYear: '',
   adminBulkIds: '',
   adminError: '',
   adminBusy: false,
@@ -1010,6 +1103,30 @@ function renderAppShell(){
 
   let mainContent;
   const profile = state.profiles[state.session];
+
+  /* Daily screen-time limit lag chuki hai — poora app block karke sirf
+     yeh message aur Logout button dikhate hain. Agla din (localStorage
+     ki date-based key khud badal jaati hai) yeh apne aap hat jaata hai. */
+  if (profile.role === 'student' && state.timeLimitReached){
+    return `
+    <div id="app-shell">
+      <header class="topbar">
+        <div class="topbar-brand">${svgIcon('cap').replace('currentColor','var(--navy)')} FC College Network</div>
+        <button type="button" class="logout-btn" data-act="logout">${svgIcon('logout')} Logout</button>
+      </header>
+      <main>
+        <div class="card" style="text-align:center;padding:36px 20px;">
+          ${svgIcon('alert').replace('currentColor','var(--maroon)')}
+          <div style="font-family:'Zilla Slab',serif;font-weight:600;font-size:18px;margin:14px 0 8px;">Aaj ka screen-time limit khatam</div>
+          <div style="color:var(--ink-soft);font-size:14px;line-height:1.6;max-width:340px;margin:0 auto;">
+            Aapne aaj FC College Network par ${DAILY_USAGE_LIMIT_MINUTES} minute (1 ghanta 30 minute) bita liye hain.
+            Padhai ke liye break lena zaroori hai — kal wapas aa jaayein!
+          </div>
+        </div>
+      </main>
+    </div>`;
+  }
+
   const overlay = !!(state.chatWith || state.viewingProfile);
   if (state.chatWith){
     mainContent = renderChatThread(state.chatWith);
@@ -1449,7 +1566,7 @@ function renderAdmin(){
         <div class="user-row">
           <div class="user-row-info">
             <div class="user-row-name">${esc(id)}</div>
-            <div class="user-row-meta">Class ${esc(rec.class || '—')} · Sec ${esc(rec.section || '—')} · ${used ? 'Student ne account bana liya hai' : 'Abhi tak koi account nahi bana'}</div>
+            <div class="user-row-meta">Class ${esc(rec.class || '—')} · Sec ${esc(rec.section || '—')}${rec.passYear ? ` · Pass ${esc(String(rec.passYear))}` : ''} · ${used ? 'Student ne account bana liya hai' : 'Abhi tak koi account nahi bana'}</div>
           </div>
           <span class="whitelist-badge ${used?'used':'free'}">${used?'Registered':'Free'}</span>
           <button type="button" class="block-btn" data-act="remove-valid-id" data-id="${esc(id)}">${svgIcon('x')} Hataayein</button>
@@ -1488,6 +1605,11 @@ function renderAdmin(){
           </select>
         </div>
       </div>
+      <div class="field">
+        <label>Passing Year — sirf Class 12 ke liye (optional)</label>
+        <input id="admin-add-passyear" placeholder="jaise: 2028" value="${esc(state.adminAddPassYear)}" />
+        <div class="verify-hint" style="margin-top:6px">Agar yeh Class 12 ka student hai to yahan uska passing year daal dein — us saal ki July se uska account automatically band ho jaayega. Class 10/11 ke liye ise khaali chhod dein.</div>
+      </div>
       ${state.adminError ? `<div class="error-note">${esc(state.adminError)}</div>` : ''}
       <button type="button" class="btn-primary" data-act="admin-add-id" ${state.adminBusy?'disabled':''}>${svgIcon('check')} ${state.adminBusy?'Add ho raha hai…':'Add karein'}</button>
     </div>
@@ -1495,9 +1617,9 @@ function renderAdmin(){
     <div class="card" style="margin-bottom:14px">
       <div class="profile-note">Ek saath bahut se number add karein</div>
       <div class="field">
-        <label>Har line mein: ID,Class,Section</label>
-        <textarea id="admin-bulk-ids" rows="5" placeholder="11851,10,A&#10;11852,11,B&#10;11853,10,A">${esc(state.adminBulkIds)}</textarea>
-        <div class="verify-hint" style="margin-top:6px">Format: ek line mein ek student — <code>ID,Class,Section</code>, jaise <code>11851,10,A</code>. Section na likhein to A maan liya jaayega.</div>
+        <label>Har line mein: ID,Class,Section,PassingYear</label>
+        <textarea id="admin-bulk-ids" rows="5" placeholder="11851,10,A&#10;11852,11,B&#10;11853,12,A,2028">${esc(state.adminBulkIds)}</textarea>
+        <div class="verify-hint" style="margin-top:6px">Format: ek line mein ek student — <code>ID,Class,Section,PassingYear</code>, jaise <code>11851,10,A</code> ya Class 12 ke liye <code>11853,12,A,2028</code>. Section na likhein to A maan liya jaayega, PassingYear sirf Class 12 ke liye zaroori hai (baaki ke liye khaali chhod dein).</div>
       </div>
       <button type="button" class="btn-primary" data-act="admin-bulk-add" ${state.adminBusy?'disabled':''}>${svgIcon('check')} ${state.adminBusy?'Add ho raha hai…':'Sabko add karein'}</button>
     </div>
@@ -1630,6 +1752,7 @@ function bindEvents(){
     on('#admin-add-id', 'input', e => state.adminAddId = e.target.value);
     on('#admin-add-class', 'change', e => state.adminAddClass = e.target.value);
     on('#admin-add-section', 'change', e => state.adminAddSection = e.target.value);
+    on('#admin-add-passyear', 'input', e => state.adminAddPassYear = e.target.value);
     on('#admin-bulk-ids', 'input', e => state.adminBulkIds = e.target.value);
     on('[data-act="admin-add-id"]', 'click', handleAdminAddId);
     on('[data-act="admin-bulk-add"]', 'click', handleAdminBulkAdd);
@@ -1699,7 +1822,7 @@ async function handleCreate(){
        (Class 6-9) umar chhupa nahi sakta — kyunki ab dropdown hai hi nahi,
        aur class server-side (Firestore) record se tay hoti hai, client se
        nahi. */
-    let studentClass = '', studentSection = '';
+    let studentClass = '', studentSection = '', studentPassYear = null;
     if (!isAdmin){
       const validDoc = await withTimeout(db.collection('validIds').doc(id).get(), 15000);
       if (!validDoc.exists) {
@@ -1710,6 +1833,7 @@ async function handleCreate(){
       const record = validDoc.data() || {};
       studentClass = String(record.class || '');
       studentSection = record.section || 'A';
+      studentPassYear = record.passYear || null;
       const classNum = parseInt(studentClass, 10);
       if (!studentClass || isNaN(classNum) || classNum < 10) {
         state.authError = 'Yeh website sirf Class 10 aur usse upar ke students ke liye chalu hai. School record ke mutabik yeh ID card Class 10 se neeche ke liye hai, isliye register nahi ho sakta.';
@@ -1722,7 +1846,7 @@ async function handleCreate(){
     const photoUrl = await withTimeout(uploadDataUrl(f.photo, 'profile-photos', cred.user.uid), 20000).catch(() => '');
     const newProfile = isAdmin
       ? { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:'Staff', section:'', subject:f.subject.trim(), role:'admin', following:[], followers:[], blocked:[], verified:true, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' }
-      : { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:studentClass, section:studentSection, subject:f.subject.trim(), role:'student', following:[], followers:[], blocked:[], verified:false, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' };
+      : { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:studentClass, section:studentSection, passYear:studentPassYear, subject:f.subject.trim(), role:'student', following:[], followers:[], blocked:[], verified:false, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' };
     await withTimeout(db.collection('profiles').doc(id).set(newProfile), 15000);
     /* onAuthStateChanged session set karega aur data load karega */
   } catch(e){
@@ -1897,12 +2021,21 @@ async function handleAdminAddId(){
   if (!parseIdCard(id)) { state.adminError = 'ID number galat hai — sirf 3-6 digit ka number daalein.'; return render(); }
   const classNum = parseInt(klass, 10);
   if (!klass || isNaN(classNum) || classNum < 10 || classNum > 12) { state.adminError = 'Class chuniye (10 se 12 ke beech) — is website ki class-gate isi field se kaam karti hai.'; return render(); }
+  const rawPassYear = (state.adminAddPassYear || '').trim();
+  let passYear = null;
+  if (rawPassYear){
+    const py = parseInt(rawPassYear, 10);
+    const thisYear = new Date().getFullYear();
+    if (isNaN(py) || py < thisYear || py > thisYear + 6) { state.adminError = 'Passing year galat hai — ek theek saal daalein (jaise ' + thisYear + ' ya usse aage).'; return render(); }
+    passYear = py;
+  }
   state.adminBusy = true; render();
   try {
-    const record = { class: klass, section, addedAt: Date.now(), addedBy: state.session };
+    const record = { class: klass, section, passYear, addedAt: Date.now(), addedBy: state.session };
     await db.collection('validIds').doc(id).set(record);
     state.validIds[id] = record;
     state.adminAddId = '';
+    state.adminAddPassYear = '';
   } catch(e){
     state.adminError = firebaseErrorMessage(e);
   }
@@ -1915,25 +2048,34 @@ async function handleAdminBulkAdd(){
   const lines = raw.split('\n').map(s => s.trim()).filter(Boolean);
   const entries = [];
   let skipped = 0;
+  const thisYear = new Date().getFullYear();
   lines.forEach(line => {
     const parts = line.split(',').map(s => s.trim());
     const id = parts[0] || '';
     const klass = parts[1] || '';
     const section = (parts[2] || 'A').toUpperCase();
+    const rawPassYear = parts[3] || '';
     const classNum = parseInt(klass, 10);
-    if (parseIdCard(id) && !isNaN(classNum) && classNum >= 10 && classNum <= 12 && (section === 'A' || section === 'B')) {
-      entries.push({ id, class: klass, section });
+    let passYear = null;
+    let passYearOk = true;
+    if (rawPassYear){
+      const py = parseInt(rawPassYear, 10);
+      passYearOk = !isNaN(py) && py >= thisYear && py <= thisYear + 6;
+      if (passYearOk) passYear = py;
+    }
+    if (parseIdCard(id) && !isNaN(classNum) && classNum >= 10 && classNum <= 12 && (section === 'A' || section === 'B') && passYearOk) {
+      entries.push({ id, class: klass, section, passYear });
     } else {
       skipped++;
     }
   });
-  if (entries.length === 0) { state.adminError = 'Koi valid line nahi mili. Format: ID,Class,Section (jaise 11851,10,A).'; return render(); }
+  if (entries.length === 0) { state.adminError = 'Koi valid line nahi mili. Format: ID,Class,Section,PassingYear (jaise 11851,10,A).'; return render(); }
   state.adminError = '';
   state.adminBusy = true; render();
   try {
     const batch = db.batch();
-    entries.forEach(({ id, class: klass, section }) => {
-      const record = { class: klass, section, addedAt: Date.now(), addedBy: state.session };
+    entries.forEach(({ id, class: klass, section, passYear }) => {
+      const record = { class: klass, section, passYear, addedAt: Date.now(), addedBy: state.session };
       batch.set(db.collection('validIds').doc(id), record);
       state.validIds[id] = record;
     });
@@ -2129,14 +2271,17 @@ function renderBootError(){
       fetchProfiles();
       fetchFeed();
       startBackgroundRefresh();
+      startUsageTimer();
     } else {
       teardownSubscriptions();
+      stopUsageTimer();
       state.session = null;
       state.profiles = {};
       state.feed = [];
       state.chatList = [];
       state.chatMessages = [];
       state.chatWith = null;
+      state.timeLimitReached = false;
     }
     render();
   });
