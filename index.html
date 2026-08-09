@@ -267,6 +267,25 @@
   .note-add-row{display:flex;gap:8px;margin-top:12px;}
   .note-add-row input{flex:1;}
   .note-add-row button{width:44px;height:44px;border-radius:12px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+  /* ---- naye 10 tools ki CSS ---- */
+  .periodic-grid{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;max-height:320px;overflow-y:auto;}
+  .periodic-tile{width:46px;height:46px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#1a1a1a;flex-shrink:0;transition:.1s;}
+  .periodic-tile-num{font-size:8px;opacity:.7;line-height:1;}
+  .periodic-tile-sym{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:13px;line-height:1.2;}
+  .periodic-tile-lg{width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:18px;color:#1a1a1a;flex-shrink:0;}
+  .formula-list{margin-top:6px;}
+  .formula-item{padding:11px 4px;border-bottom:1px solid var(--paper-deep);}
+  .formula-item:last-child{border-bottom:none;}
+  .formula-title{font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:3px;}
+  .formula-eq{font-family:'IBM Plex Mono',monospace;font-size:14px;}
+  .wc-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+  .wc-stat{border-radius:12px;background:var(--paper-deep);padding:12px;text-align:center;}
+  .wc-stat-num{font-family:'Zilla Slab',serif;font-size:22px;font-weight:600;color:var(--navy);}
+  .wc-stat-label{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+  .typing-sample{font-family:'IBM Plex Mono',monospace;font-size:14px;line-height:1.7;background:var(--paper-deep);border-radius:12px;padding:14px;margin-bottom:12px;letter-spacing:.01em;}
+  .typing-sample span.ok{color:var(--sage);}
+  .typing-sample span.bad{color:var(--maroon);text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -374,15 +393,59 @@ function isTimeLimitReached(){
   return getUsageSeconds() >= DAILY_USAGE_LIMIT_MINUTES * 60;
 }
 /* Har 30 second mein 30 second jod dete hain — sirf jab tab visible ho
-   aur session ek student ka ho (admin/staff par yeh limit nahi lagti). */
+   aur session ek student ka ho (admin/staff par yeh limit nahi lagti).
+   Tools tab (Calculator, Study Timer, Notes, waghera) is limit se
+   EXEMPT hai — wahan koi time count nahi hota, kyunki wo khud padhai
+   ke liye tools hain, "distraction" nahi. Sirf jab user Home/Search/
+   Chat/Profile/Admin mein ho tab hi count hota hai. */
 function usageTick(){
   const me = state.profiles[state.session];
   if (!state.session || !me || me.role !== 'student') return;
+  const onToolsNow = state.tab === 'tools' && !state.chatWith && !state.viewingProfile;
+  if (onToolsNow) return;
   const total = addUsageSeconds(30);
   const wasReached = state.timeLimitReached;
   state.timeLimitReached = total >= DAILY_USAGE_LIMIT_MINUTES * 60;
   if (state.timeLimitReached && !wasReached) render();
 }
+/* ===== Naam change — mahine mein sirf ek baar (misuse rokne ke liye) =====
+   Student ho ya admin, dono ke liye same rule hai: apna display naam
+   badalne ke baad, agla change kam se kam 30 din baad hi ho sakta hai.
+   Photo ya marksheet kabhi bhi badle ja sakte hain — sirf naam par yeh
+   limit hai, taaki koi baar-baar naam badal kar identity confuse na kare. */
+const NAME_CHANGE_COOLDOWN_DAYS = 30;
+function nameChangeDaysLeft(profile){
+  if (!profile || !profile.lastNameChangeAt) return 0;
+  const elapsedMs = Date.now() - profile.lastNameChangeAt;
+  const cooldownMs = NAME_CHANGE_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
+  if (elapsedMs >= cooldownMs) return 0;
+  return Math.ceil((cooldownMs - elapsedMs) / (24 * 60 * 60 * 1000));
+}
+
+/* ===== Naam duplicate na ho — poori website par har profile ka naam
+   unique hona chahiye (student ho ya admin, koi farak nahi). Signup ke
+   waqt aur baad mein naam-change karte waqt dono jagah yeh check hota
+   hai. Poori 'profiles' collection fetch karke case-insensitive match
+   dekha jaata hai — school-scale app hai isliye yeh chhota-sa extra
+   read theek hai (fetchProfiles bhi waise hi poori collection fetch
+   karta hai). */
+async function nameAlreadyTaken(name, excludeIdCard){
+  const target = (name || '').trim().toLowerCase();
+  if (!target) return false;
+  try {
+    const snap = await db.collection('profiles').get();
+    let taken = false;
+    snap.forEach(d => {
+      if (d.id === excludeIdCard) return;
+      const data = d.data() || {};
+      if ((data.name || '').trim().toLowerCase() === target) taken = true;
+    });
+    return taken;
+  } catch(e){
+    return false; // check fail ho jaaye to signup/change ko block nahi karte
+  }
+}
+
 function startUsageTimer(){
   stopUsageTimer();
   if (!state.session) return;
@@ -605,6 +668,15 @@ function svgIcon(name){
     calendar: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>',
     qrIcon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM19 14h2v2h-2zM14 19h2v2h-2zM19 19h2v2h-2z"/></svg>',
     note: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6l5 5v13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M9 12h6M9 16h6M9 8h2"/></svg>',
+    swap: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3l4 4-4 4"/><path d="M3 7h18"/><path d="M7 21l-4-4 4-4"/><path d="M21 17H3"/></svg>',
+    atom: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="10" ry="4.5"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(120 12 12)"/></svg>',
+    book: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>',
+    grid: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+    checklist: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 6 2 2 3-3"/><path d="M10 6h11"/><path d="m3 14 2 2 3-3"/><path d="M10 14h11"/></svg>',
+    textCount: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>',
+    shuffle: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 18h3.5a3 3 0 0 0 2.5-1.3l6-8.4a3 3 0 0 1 2.5-1.3H20"/><path d="m17 3 4 3-4 3"/><path d="M2 6h3.5a3 3 0 0 1 2.5 1.3l1 1.4"/><path d="M14 18h1.5a3 3 0 0 0 2.5-1.3l.5-.7"/><path d="m17 21 4-3-4-3"/></svg>',
+    keyboard: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h0M10 10h0M14 10h0M18 10h0M6 14h12"/></svg>',
+    stopwatch: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2"/><path d="M9 2h6M12 2v3"/></svg>',
   };
   return icons[name] || '';
 }
@@ -881,6 +953,249 @@ function deleteNote(id){
   render();
 }
 
+/* ---- unit converter — sab kuch client-side maths, koi network nahi ---- */
+const UNIT_DATA = {
+  length: { units: { m:1, km:1000, cm:0.01, mm:0.001, ft:0.3048, inch:0.0254, mile:1609.344 }, labels: { m:'Metre', km:'Kilometre', cm:'Centimetre', mm:'Millimetre', ft:'Foot', inch:'Inch', mile:'Mile' } },
+  weight: { units: { kg:1, g:0.001, mg:0.000001, lb:0.45359237, oz:0.0283495 }, labels: { kg:'Kilogram', g:'Gram', mg:'Milligram', lb:'Pound', oz:'Ounce' } },
+  temp: { units: { C:1, F:1, K:1 }, labels: { C:'Celsius', F:'Fahrenheit', K:'Kelvin' } },
+};
+function convertUnit(cat, from, to, val){
+  if (isNaN(val)) return null;
+  if (cat === 'temp'){
+    let c;
+    if (from === 'C') c = val; else if (from === 'F') c = (val - 32) * 5/9; else c = val - 273.15;
+    if (to === 'C') return c; if (to === 'F') return c * 9/5 + 32; return c + 273.15;
+  }
+  const u = UNIT_DATA[cat].units;
+  return (val * u[from]) / u[to];
+}
+
+/* ---- periodic table — poori tarah static chemistry data, ek baar likh
+   diya, kabhi badalta nahi, isliye seedha yahin embed hai ---- */
+const CAT_NAMES = { am:'Alkali Metal', ae:'Alkaline Earth', tm:'Transition Metal', ln:'Lanthanide', ac:'Actinide', pt:'Post-transition Metal', me:'Metalloid', nm:'Nonmetal', ha:'Halogen', ng:'Noble Gas' };
+const CAT_COLORS = { am:'#E8A33D', ae:'#D9A0A0', tm:'#7FA8C9', ln:'#B98FC9', ac:'#C97F9E', pt:'#8FBF9E', me:'#C9B98F', nm:'#7FBF93', ha:'#E8C33D', ng:'#9AA2B5' };
+const PERIODIC_ELEMENTS = [
+  [1,'H','Hydrogen',1.008,'nm'],[2,'He','Helium',4.003,'ng'],[3,'Li','Lithium',6.94,'am'],[4,'Be','Beryllium',9.012,'ae'],
+  [5,'B','Boron',10.81,'me'],[6,'C','Carbon',12.01,'nm'],[7,'N','Nitrogen',14.01,'nm'],[8,'O','Oxygen',16.00,'nm'],
+  [9,'F','Fluorine',19.00,'ha'],[10,'Ne','Neon',20.18,'ng'],[11,'Na','Sodium',22.99,'am'],[12,'Mg','Magnesium',24.31,'ae'],
+  [13,'Al','Aluminium',26.98,'pt'],[14,'Si','Silicon',28.09,'me'],[15,'P','Phosphorus',30.97,'nm'],[16,'S','Sulfur',32.07,'nm'],
+  [17,'Cl','Chlorine',35.45,'ha'],[18,'Ar','Argon',39.95,'ng'],[19,'K','Potassium',39.10,'am'],[20,'Ca','Calcium',40.08,'ae'],
+  [21,'Sc','Scandium',44.96,'tm'],[22,'Ti','Titanium',47.87,'tm'],[23,'V','Vanadium',50.94,'tm'],[24,'Cr','Chromium',52.00,'tm'],
+  [25,'Mn','Manganese',54.94,'tm'],[26,'Fe','Iron',55.85,'tm'],[27,'Co','Cobalt',58.93,'tm'],[28,'Ni','Nickel',58.69,'tm'],
+  [29,'Cu','Copper',63.55,'tm'],[30,'Zn','Zinc',65.38,'tm'],[31,'Ga','Gallium',69.72,'pt'],[32,'Ge','Germanium',72.63,'me'],
+  [33,'As','Arsenic',74.92,'me'],[34,'Se','Selenium',78.97,'nm'],[35,'Br','Bromine',79.90,'ha'],[36,'Kr','Krypton',83.80,'ng'],
+  [37,'Rb','Rubidium',85.47,'am'],[38,'Sr','Strontium',87.62,'ae'],[39,'Y','Yttrium',88.91,'tm'],[40,'Zr','Zirconium',91.22,'tm'],
+  [41,'Nb','Niobium',92.91,'tm'],[42,'Mo','Molybdenum',95.95,'tm'],[43,'Tc','Technetium',98,'tm'],[44,'Ru','Ruthenium',101.1,'tm'],
+  [45,'Rh','Rhodium',102.9,'tm'],[46,'Pd','Palladium',106.4,'tm'],[47,'Ag','Silver',107.9,'tm'],[48,'Cd','Cadmium',112.4,'tm'],
+  [49,'In','Indium',114.8,'pt'],[50,'Sn','Tin',118.7,'pt'],[51,'Sb','Antimony',121.8,'me'],[52,'Te','Tellurium',127.6,'me'],
+  [53,'I','Iodine',126.9,'ha'],[54,'Xe','Xenon',131.3,'ng'],[55,'Cs','Caesium',132.9,'am'],[56,'Ba','Barium',137.3,'ae'],
+  [57,'La','Lanthanum',138.9,'ln'],[58,'Ce','Cerium',140.1,'ln'],[59,'Pr','Praseodymium',140.9,'ln'],[60,'Nd','Neodymium',144.2,'ln'],
+  [61,'Pm','Promethium',145,'ln'],[62,'Sm','Samarium',150.4,'ln'],[63,'Eu','Europium',152.0,'ln'],[64,'Gd','Gadolinium',157.3,'ln'],
+  [65,'Tb','Terbium',158.9,'ln'],[66,'Dy','Dysprosium',162.5,'ln'],[67,'Ho','Holmium',164.9,'ln'],[68,'Er','Erbium',167.3,'ln'],
+  [69,'Tm','Thulium',168.9,'ln'],[70,'Yb','Ytterbium',173.0,'ln'],[71,'Lu','Lutetium',175.0,'ln'],[72,'Hf','Hafnium',178.5,'tm'],
+  [73,'Ta','Tantalum',180.9,'tm'],[74,'W','Tungsten',183.8,'tm'],[75,'Re','Rhenium',186.2,'tm'],[76,'Os','Osmium',190.2,'tm'],
+  [77,'Ir','Iridium',192.2,'tm'],[78,'Pt','Platinum',195.1,'tm'],[79,'Au','Gold',197.0,'tm'],[80,'Hg','Mercury',200.6,'tm'],
+  [81,'Tl','Thallium',204.4,'pt'],[82,'Pb','Lead',207.2,'pt'],[83,'Bi','Bismuth',209.0,'pt'],[84,'Po','Polonium',209,'pt'],
+  [85,'At','Astatine',210,'ha'],[86,'Rn','Radon',222,'ng'],[87,'Fr','Francium',223,'am'],[88,'Ra','Radium',226,'ae'],
+  [89,'Ac','Actinium',227,'ac'],[90,'Th','Thorium',232.0,'ac'],[91,'Pa','Protactinium',231.0,'ac'],[92,'U','Uranium',238.0,'ac'],
+  [93,'Np','Neptunium',237,'ac'],[94,'Pu','Plutonium',244,'ac'],[95,'Am','Americium',243,'ac'],[96,'Cm','Curium',247,'ac'],
+  [97,'Bk','Berkelium',247,'ac'],[98,'Cf','Californium',251,'ac'],[99,'Es','Einsteinium',252,'ac'],[100,'Fm','Fermium',257,'ac'],
+  [101,'Md','Mendelevium',258,'ac'],[102,'No','Nobelium',259,'ac'],[103,'Lr','Lawrencium',266,'ac'],[104,'Rf','Rutherfordium',267,'tm'],
+  [105,'Db','Dubnium',268,'tm'],[106,'Sg','Seaborgium',269,'tm'],[107,'Bh','Bohrium',270,'tm'],[108,'Hs','Hassium',269,'tm'],
+  [109,'Mt','Meitnerium',278,'tm'],[110,'Ds','Darmstadtium',281,'tm'],[111,'Rg','Roentgenium',282,'tm'],[112,'Cn','Copernicium',285,'tm'],
+  [113,'Nh','Nihonium',286,'pt'],[114,'Fl','Flerovium',289,'pt'],[115,'Mc','Moscovium',290,'pt'],[116,'Lv','Livermorium',293,'pt'],
+  [117,'Ts','Tennessine',294,'ha'],[118,'Og','Oganesson',294,'ng'],
+];
+
+/* ---- formula sheet — static reference, subject-wise grouped ---- */
+const FORMULA_DATA = {
+  physics: [
+    ['Speed', 'v = d / t'], ['Velocity', 'v = (final − initial position) / time'],
+    ['Acceleration', 'a = (v − u) / t'], ['Newton\'s 2nd Law', 'F = m × a'],
+    ['Work', 'W = F × d × cosθ'], ['Power', 'P = W / t'],
+    ['Kinetic Energy', 'KE = ½ m v²'], ['Potential Energy', 'PE = m g h'],
+    ['Momentum', 'p = m × v'], ['Ohm\'s Law', 'V = I × R'],
+    ['Electric Power', 'P = V × I'], ['Density', 'ρ = m / V'],
+    ['Pressure', 'P = F / A'], ['Wave Speed', 'v = f × λ'],
+    ['Equations of Motion', 'v = u + at,  s = ut + ½at²,  v² = u² + 2as'],
+    ['Gravitational Force', 'F = G m₁m₂ / r²'],
+  ],
+  math: [
+    ['Quadratic Formula', 'x = (−b ± √(b²−4ac)) / 2a'], ['Area of Circle', 'A = πr²'],
+    ['Circumference', 'C = 2πr'], ['Area of Triangle', 'A = ½ × base × height'],
+    ['Pythagoras Theorem', 'a² + b² = c²'], ['Area of Rectangle', 'A = l × b'],
+    ['Volume of Cube', 'V = a³'], ['Volume of Cylinder', 'V = πr²h'],
+    ['Volume of Sphere', 'V = 4/3 πr³'], ['Simple Interest', 'SI = P × R × T / 100'],
+    ['Compound Interest', 'A = P(1 + R/100)ⁿ'], ['Slope of a Line', 'm = (y₂−y₁)/(x₂−x₁)'],
+    ['Distance Formula', 'd = √((x₂−x₁)² + (y₂−y₁)²)'], ['Sum of n natural numbers', 'S = n(n+1)/2'],
+    ['sin²θ + cos²θ', '= 1'], ['Mean', 'Mean = Σx / n'],
+  ],
+  chem: [
+    ['Moles', 'n = mass / molar mass'], ['Molarity', 'M = moles of solute / litres of solution'],
+    ['Ideal Gas Law', 'PV = nRT'], ['pH', 'pH = −log₁₀[H⁺]'],
+    ['Density', 'ρ = mass / volume'], ['Percentage Composition', '% = (mass of element / molar mass) × 100'],
+    ['Dilution Law', 'M₁V₁ = M₂V₂'], ['Avogadro\'s Number', '1 mole = 6.022 × 10²³ particles'],
+    ['Rate of Reaction', 'Rate = Δ[concentration] / Δt'], ['Boyle\'s Law', 'P₁V₁ = P₂V₂'],
+    ['Charles\'s Law', 'V₁/T₁ = V₂/T₂'], ['Empirical Formula Mass', 'sum of atomic masses in ratio'],
+  ],
+};
+
+/* ---- weekly timetable — din ke hisaab se localStorage mein save ---- */
+const TT_DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+function saveTimetable(){
+  localStorage.setItem('fc_timetable', JSON.stringify(state.timetable));
+}
+function addTimetableEntry(){
+  const time = (state.ttForm.time || '').trim();
+  const subject = (state.ttForm.subject || '').trim();
+  if (!time || !subject) return;
+  const day = state.timetableDay;
+  state.timetable[day] = state.timetable[day] || [];
+  state.timetable[day].push({ id: Date.now(), time, subject });
+  state.timetable[day].sort((a,b) => a.time.localeCompare(b.time));
+  state.ttForm = { time:'', subject:'' };
+  saveTimetable();
+  render();
+}
+function deleteTimetableEntry(day, id){
+  state.timetable[day] = (state.timetable[day] || []).filter(e => e.id !== id);
+  saveTimetable();
+  render();
+}
+
+/* ---- study checklist — Notes se alag rakha gaya hai, roz ke tasks
+   tick karne ke liye taaki Notes free-form rahe ---- */
+function saveChecklist(){
+  localStorage.setItem('fc_checklist', JSON.stringify(state.checklist));
+}
+function addChecklistItem(){
+  const text = (state.checklistInput || '').trim();
+  if (!text) return;
+  state.checklist.unshift({ id: Date.now(), text, done: false });
+  state.checklistInput = '';
+  saveChecklist();
+  render();
+}
+function toggleChecklistItem(id){
+  const it = state.checklist.find(x => x.id === id);
+  if (it) it.done = !it.done;
+  saveChecklist();
+  render();
+}
+function deleteChecklistItem(id){
+  state.checklist = state.checklist.filter(x => x.id !== id);
+  saveChecklist();
+  render();
+}
+
+/* ---- word/character counter ---- */
+function countWords(text){
+  const trimmed = (text || '').trim();
+  if (!trimmed) return { words:0, chars:0, charsNoSpace:0, sentences:0 };
+  const words = trimmed.split(/\s+/).filter(Boolean).length;
+  const chars = text.length;
+  const charsNoSpace = text.replace(/\s/g, '').length;
+  const sentences = trimmed.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
+  return { words, chars, charsNoSpace, sentences };
+}
+
+/* ---- age calculator ---- */
+function calcAge(dobStr){
+  if (!dobStr) return null;
+  const dob = new Date(dobStr + 'T00:00:00');
+  const now = new Date();
+  if (dob > now) return null;
+  let years = now.getFullYear() - dob.getFullYear();
+  let months = now.getMonth() - dob.getMonth();
+  let days = now.getDate() - dob.getDate();
+  if (days < 0){
+    months -= 1;
+    const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    days += prevMonth.getDate();
+  }
+  if (months < 0){ years -= 1; months += 12; }
+  const totalDays = Math.floor((now - dob) / (1000*60*60*24));
+  return { years, months, days, totalDays };
+}
+
+/* ---- random group / name picker ---- */
+function shuffleArray(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function runPicker(){
+  const names = (state.groupNamesInput || '').split('\n').map(s => s.trim()).filter(Boolean);
+  if (names.length === 0) { state.pickerResult = null; return render(); }
+  if (state.pickerMode === 'pick'){
+    const idx = Math.floor(Math.random() * names.length);
+    state.pickerResult = { type:'pick', name: names[idx] };
+  } else {
+    const size = Math.max(1, parseInt(state.groupSize, 10) || 4);
+    const shuffled = shuffleArray(names);
+    const groups = [];
+    for (let i = 0; i < shuffled.length; i += size) groups.push(shuffled.slice(i, i + size));
+    state.pickerResult = { type:'groups', groups };
+  }
+  render();
+}
+
+/* ---- typing speed test ---- */
+const TYPING_SAMPLES = [
+  'Padhai mein mehnat hi safalta ki sabse pehli seedhi hai.',
+  'Har din thoda naya seekhna hi asli tarakki hai.',
+  'The quick brown fox jumps over the lazy dog near the river.',
+  'Practice makes a student confident, consistent and truly prepared.',
+  'Time management aaj ke competitive exams mein sabse zaroori skill hai.',
+];
+function newTypingTest(){
+  state.typing = { status:'idle', startTime:0, sample: TYPING_SAMPLES[Math.floor(Math.random()*TYPING_SAMPLES.length)], typed:'', wpm:0, accuracy:0 };
+  render();
+}
+function finishTypingTest(){
+  const t = state.typing;
+  const elapsedMin = Math.max((Date.now() - t.startTime) / 60000, 1/60);
+  const wordCount = t.sample.trim().split(/\s+/).length;
+  const wpm = Math.round(wordCount / elapsedMin);
+  let correct = 0;
+  for (let i = 0; i < t.sample.length && i < t.typed.length; i++) if (t.sample[i] === t.typed[i]) correct++;
+  const accuracy = Math.round((correct / t.sample.length) * 100);
+  state.typing = { ...t, status:'done', wpm, accuracy };
+  render();
+}
+
+/* ---- simple stopwatch ---- */
+let stopwatchInterval = null;
+function startStopwatch(){
+  if (state.stopwatch.running) return;
+  state.stopwatch.running = true;
+  stopwatchInterval = setInterval(() => { state.stopwatch.seconds += 1; render(); }, 1000);
+  render();
+}
+function pauseStopwatch(){
+  state.stopwatch.running = false;
+  if (stopwatchInterval) { clearInterval(stopwatchInterval); stopwatchInterval = null; }
+  render();
+}
+function resetStopwatch(){
+  pauseStopwatch();
+  state.stopwatch = { seconds:0, running:false, laps:[] };
+  render();
+}
+function lapStopwatch(){
+  state.stopwatch.laps.unshift(state.stopwatch.seconds);
+  render();
+}
+function fmtStopwatch(s){
+  const h = Math.floor(s/3600).toString().padStart(2,'0');
+  const m = Math.floor((s%3600)/60).toString().padStart(2,'0');
+  const sec = (s%60).toString().padStart(2,'0');
+  return h === '00' ? `${m}:${sec}` : `${h}:${m}:${sec}`;
+}
+
 /* ---- ID card QR ---- */
 let qrInstance = null;
 function renderIdQr(){
@@ -915,6 +1230,7 @@ const state = {
   sectionFilter: 'all',
   composer: { text:'', image:'', error:'' },
   profileEdit: null,
+  profileNameError: '',
   passwordChange: { current:'', next:'', error:'', busy:false, success:false },
   profileSaved: false,
   searchQuery: '',
@@ -938,6 +1254,26 @@ const state = {
   countdown: JSON.parse(localStorage.getItem('fc_countdown') || 'null') || { name: 'Board Exams', date: '' },
   notes: JSON.parse(localStorage.getItem('fc_notes') || '[]'),
   noteInput: '',
+
+  /* ---- naye 10 tools ka state — yeh sab bhi sirf localStorage/RAM mein
+     rehta hai, koi Firebase call nahi karte ---- */
+  unitConv: { cat: 'length', from: 'm', to: 'km', val: '' },
+  periodicSearch: '',
+  periodicSelected: null,
+  formulaSubject: 'physics',
+  timetable: JSON.parse(localStorage.getItem('fc_timetable') || 'null') || { Mon:[],Tue:[],Wed:[],Thu:[],Fri:[],Sat:[],Sun:[] },
+  timetableDay: 'Mon',
+  ttForm: { time:'', subject:'' },
+  checklist: JSON.parse(localStorage.getItem('fc_checklist') || '[]'),
+  checklistInput: '',
+  wordCounterText: '',
+  ageDob: '',
+  pickerMode: 'groups',
+  groupNamesInput: '',
+  groupSize: 4,
+  pickerResult: null,
+  typing: { status: 'idle', startTime: 0, sample: '', typed: '', wpm: 0, accuracy: 0 },
+  stopwatch: { seconds: 0, running: false, laps: [] },
 };
 
 /* pehli baar page khulte hi saved dark-mode preference apply kar dete hain */
@@ -1104,10 +1440,16 @@ function renderAppShell(){
   let mainContent;
   const profile = state.profiles[state.session];
 
+  const overlay = !!(state.chatWith || state.viewingProfile);
+
   /* Daily screen-time limit lag chuki hai — poora app block karke sirf
      yeh message aur Logout button dikhate hain. Agla din (localStorage
-     ki date-based key khud badal jaati hai) yeh apne aap hat jaata hai. */
-  if (profile.role === 'student' && state.timeLimitReached){
+     ki date-based key khud badal jaati hai) yeh apne aap hat jaata hai.
+     EXCEPTION: Tools tab (Calculator, Study Timer, Notes, waghera) tab bhi
+     kaam karta hai — kyunki wo khud padhai ke liye hain, isliye limit lagne
+     ke baad bhi student unhe use kar sake — bas Tools se bahar (Home/Search/
+     Chat/Profile/Admin) jaate hi yeh block screen wapas aa jaayegi. */
+  if (profile.role === 'student' && state.timeLimitReached && !(state.tab === 'tools' && !overlay)){
     return `
     <div id="app-shell">
       <header class="topbar">
@@ -1122,12 +1464,12 @@ function renderAppShell(){
             Aapne aaj FC College Network par ${DAILY_USAGE_LIMIT_MINUTES} minute (1 ghanta 30 minute) bita liye hain.
             Padhai ke liye break lena zaroori hai — kal wapas aa jaayein!
           </div>
+          <button type="button" class="btn-primary" style="margin-top:16px" data-act="tab-tools">${svgIcon('tools')} Study Tools kholein</button>
         </div>
       </main>
     </div>`;
   }
 
-  const overlay = !!(state.chatWith || state.viewingProfile);
   if (state.chatWith){
     mainContent = renderChatThread(state.chatWith);
   } else if (state.viewingProfile){
@@ -1209,6 +1551,16 @@ function renderTools(){
     { id:'countdown', label:'Exam Countdown', icon:'calendar' },
     { id:'qr', label:'ID QR Code', icon:'qrIcon' },
     { id:'notes', label:'Notes', icon:'note' },
+    { id:'unitconv', label:'Unit Converter', icon:'swap' },
+    { id:'periodic', label:'Periodic Table', icon:'atom' },
+    { id:'formulas', label:'Formula Sheet', icon:'book' },
+    { id:'timetable', label:'Timetable', icon:'grid' },
+    { id:'checklist', label:'Study Checklist', icon:'checklist' },
+    { id:'wordcount', label:'Word Counter', icon:'textCount' },
+    { id:'age', label:'Age Calculator', icon:'calendar' },
+    { id:'picker', label:'Group/Name Picker', icon:'shuffle' },
+    { id:'typing', label:'Typing Test', icon:'keyboard' },
+    { id:'stopwatch', label:'Stopwatch', icon:'stopwatch' },
   ];
   return `
     <div class="quote-card">
@@ -1223,6 +1575,16 @@ function renderTools(){
     ${t==='countdown' ? renderToolCountdown() : ''}
     ${t==='qr' ? renderToolQr() : ''}
     ${t==='notes' ? renderToolNotes() : ''}
+    ${t==='unitconv' ? renderToolUnitConv() : ''}
+    ${t==='periodic' ? renderToolPeriodic() : ''}
+    ${t==='formulas' ? renderToolFormulas() : ''}
+    ${t==='timetable' ? renderToolTimetable() : ''}
+    ${t==='checklist' ? renderToolChecklist() : ''}
+    ${t==='wordcount' ? renderToolWordCount() : ''}
+    ${t==='age' ? renderToolAge() : ''}
+    ${t==='picker' ? renderToolPicker() : ''}
+    ${t==='typing' ? renderToolTyping() : ''}
+    ${t==='stopwatch' ? renderToolStopwatch() : ''}
   `;
 }
 
@@ -1331,6 +1693,225 @@ function renderToolNotes(){
         <input id="note-input" placeholder="Naya note likhein…" value="${esc(state.noteInput)}" />
         <button type="button" data-act="note-add">${svgIcon('plus')}</button>
       </div>
+    </div>`;
+}
+
+function renderToolUnitConv(){
+  const c = state.unitConv;
+  const units = Object.keys(UNIT_DATA[c.cat].units);
+  const val = parseFloat(c.val);
+  const result = c.val !== '' ? convertUnit(c.cat, c.from, c.to, val) : null;
+  return `
+    <div class="tool-card">
+      <div class="tool-card-title">${svgIcon('swap')} Unit Converter</div>
+      <div class="tool-card-sub">Length, weight aur temperature turant convert karein — offline bhi chalega.</div>
+      <div class="seg-toggle">
+        <button type="button" class="${c.cat==='length'?'active':''}" data-act="uc-cat" data-val="length">Length</button>
+        <button type="button" class="${c.cat==='weight'?'active':''}" data-act="uc-cat" data-val="weight">Weight</button>
+        <button type="button" class="${c.cat==='temp'?'active':''}" data-act="uc-cat" data-val="temp">Temp</button>
+      </div>
+      <div class="field"><label>Value</label><input id="uc-val" type="number" inputmode="decimal" placeholder="10" value="${esc(c.val)}" /></div>
+      <div class="row2">
+        <div class="field"><label>From</label><select id="uc-from">${units.map(u => `<option value="${u}" ${c.from===u?'selected':''}>${UNIT_DATA[c.cat].labels[u]}</option>`).join('')}</select></div>
+        <div class="field"><label>To</label><select id="uc-to">${units.map(u => `<option value="${u}" ${c.to===u?'selected':''}>${UNIT_DATA[c.cat].labels[u]}</option>`).join('')}</select></div>
+      </div>
+      <button type="button" class="btn-ghost" data-act="uc-swap">${svgIcon('swap')} Swap</button>
+      ${result !== null && !isNaN(result) ? `<div class="tool-result"><div class="tool-result-num">${result.toFixed(4).replace(/\.?0+$/,'')}</div><div class="tool-result-label">${esc(c.val)} ${UNIT_DATA[c.cat].labels[c.from]} = ? ${UNIT_DATA[c.cat].labels[c.to]}</div></div>` : ''}
+    </div>`;
+}
+
+function renderToolPeriodic(){
+  const search = (state.periodicSearch || '').toLowerCase().trim();
+  const list = PERIODIC_ELEMENTS.filter(e => !search || e[2].toLowerCase().includes(search) || e[1].toLowerCase() === search || String(e[0]) === search);
+  const sel = state.periodicSelected ? PERIODIC_ELEMENTS.find(e => e[0] === state.periodicSelected) : null;
+  return `
+    <div class="tool-card">
+      <div class="tool-card-title">${svgIcon('atom')} Periodic Table</div>
+      <div class="tool-card-sub">Sabhi 118 elements — naam ya symbol se search karein, tap karke details dekhein.</div>
+      <div class="field"><input id="periodic-search" placeholder="Search: naam, symbol ya number…" value="${esc(state.periodicSearch)}" /></div>
+      ${sel ? `
+        <div class="tool-result" style="background:${CAT_COLORS[sel[4]]}22;text-align:left;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="periodic-tile-lg" style="background:${CAT_COLORS[sel[4]]}">${esc(sel[1])}</div>
+            <div>
+              <div style="font-family:'Zilla Slab',serif;font-weight:600;font-size:16px;">${esc(sel[2])}</div>
+              <div style="font-size:12px;color:var(--ink-soft)">Atomic No. ${sel[0]} · Mass ${sel[3]} · ${CAT_NAMES[sel[4]]}</div>
+            </div>
+          </div>
+        </div>` : ''}
+      <div class="periodic-grid">
+        ${list.map(e => `<button type="button" class="periodic-tile" data-act="periodic-pick" data-id="${e[0]}" style="background:${CAT_COLORS[e[4]]}${state.periodicSelected===e[0]?'':'55'}">
+          <span class="periodic-tile-num">${e[0]}</span><span class="periodic-tile-sym">${esc(e[1])}</span>
+        </button>`).join('')}
+        ${list.length===0 ? `<div class="empty-state" style="padding:24px 0;width:100%">Kuch nahi mila.</div>` : ''}
+      </div>
+    </div>`;
+}
+
+function renderToolFormulas(){
+  const subj = state.formulaSubject;
+  const list = FORMULA_DATA[subj];
+  return `
+    <div class="tool-card">
+      <div class="tool-card-title">${svgIcon('book')} Formula Sheet</div>
+      <div class="tool-card-sub">Physics, Math aur Chemistry ke zaroori formulas ek jagah.</div>
+      <div class="seg-toggle">
+        <button type="button" class="${subj==='physics'?'active':''}" data-act="formula-subject" data-val="physics">Physics</button>
+        <button type="button" class="${subj==='math'?'active':''}" data-act="formula-subject" data-val="math">Math</button>
+        <button type="button" class="${subj==='chem'?'active':''}" data-act="formula-subject" data-val="chem">Chemistry</button>
+      </div>
+      <div class="formula-list">
+        ${list.map(f => `<div class="formula-item"><div class="formula-title">${esc(f[0])}</div><div class="formula-eq">${esc(f[1])}</div></div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderToolTimetable(){
+  const day = state.timetableDay;
+  const entries = state.timetable[day] || [];
+  return `
+    <div class="tool-card">
+      <div class="tool-card-title">${svgIcon('grid')} Weekly Timetable</div>
+      <div class="tool-card-sub">Apna class schedule yahan bana kar rakhein — sirf is device par save hota hai.</div>
+      <div class="tool-tabs" style="margin-bottom:12px">
+        ${TT_DAYS.map(d => `<button type="button" class="${day===d?'active':''}" data-act="tt-day" data-val="${d}">${d}</button>`).join('')}
+      </div>
+      <div class="row2">
+        <div class="field"><label>Time</label><input id="tt-time" type="time" value="${esc(state.ttForm.time)}" /></div>
+        <div class="field"><label>Subject</label><input id="tt-subject" placeholder="Maths" value="${esc(state.ttForm.subject)}" /></div>
+      </div>
+      <button type="button" class="btn-primary" data-act="tt-add">${svgIcon('plus')} Add</button>
+      <div style="margin-top:14px">
+        ${entries.length===0 ? `<div class="empty-state" style="padding:20px 0">Aaj (${day}) ke liye koi entry nahi.</div>` :
+          entries.map(e => `
+          <div class="note-item">
+            <div class="note-item-text" style="font-weight:600">${esc(e.time)}</div>
+            <div class="note-item-text">${esc(e.subject)}</div>
+            <button type="button" class="note-del" data-act="tt-delete" data-day="${day}" data-id="${e.id}">${svgIcon('trash')}</button>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderToolChecklist(){
+  const items = state.checklist || [];
+  const rows = items.length === 0
+    ? `<div class="empty-state" style="padding:24px 0">Koi task nahi — neeche se add karein.</div>`
+    : items.map(n => `
+      <div class="note-item">
+        <button type="button" class="note-check ${n.done?'done':''}" data-act="checklist-toggle" data-id="${n.id}">${n.done ? svgIcon('check') : ''}</button>
+        <div class="note-item-text ${n.done?'done':''}">${esc(n.text)}</div>
+        <button type="button" class="note-del" data-act="checklist-delete" data-id="${n.id}">${svgIcon('trash')}</button>
+      </div>`).join('');
+  return `
+    <div class="tool-card">
+      <div class="tool-card-title">${svgIcon('checklist')} Study Checklist</div>
+      <div class="tool-card-sub">Roz ke study tasks tick karein — sirf is device par save hota hai.</div>
+      ${rows}
+      <div class="note-add-row">
+        <input id="checklist-input" placeholder="Naya task likhein…" value="${esc(state.checklistInput)}" />
+        <button type="button" data-act="checklist-add">${svgIcon('plus')}</button>
+      </div>
+    </div>`;
+}
+
+function renderToolWordCount(){
+  const text = state.wordCounterText || '';
+  const stats = countWords(text);
+  return `
+    <div class="tool-card">
+      <div class="tool-card-title">${svgIcon('textCount')} Word / Character Counter</div>
+      <div class="tool-card-sub">Essay ya answer likhte waqt live count dekhein.</div>
+      <div class="field"><textarea id="wc-text" rows="7" placeholder="Yahan apna text paste ya type karein…">${esc(text)}</textarea></div>
+      <div class="wc-stats">
+        <div class="wc-stat"><div class="wc-stat-num">${stats.words}</div><div class="wc-stat-label">Words</div></div>
+        <div class="wc-stat"><div class="wc-stat-num">${stats.chars}</div><div class="wc-stat-label">Characters</div></div>
+        <div class="wc-stat"><div class="wc-stat-num">${stats.charsNoSpace}</div><div class="wc-stat-label">Without spaces</div></div>
+        <div class="wc-stat"><div class="wc-stat-num">${stats.sentences}</div><div class="wc-stat-label">Sentences</div></div>
+      </div>
+    </div>`;
+}
+
+function renderToolAge(){
+  const age = calcAge(state.ageDob);
+  return `
+    <div class="tool-card">
+      <div class="tool-card-title">${svgIcon('calendar')} Age Calculator</div>
+      <div class="tool-card-sub">Date of birth se exact age nikaale — years, months, days mein.</div>
+      <div class="field"><label>Date of Birth</label><input id="age-dob" type="date" value="${esc(state.ageDob)}" /></div>
+      ${age ? `
+        <div class="tool-result">
+          <div class="tool-result-num">${age.years}y ${age.months}m ${age.days}d</div>
+          <div class="tool-result-label">Total ${age.totalDays.toLocaleString('en-IN')} din</div>
+        </div>` : state.ageDob ? `<div class="tool-result-label" style="margin-top:8px">Date sahi daalein.</div>` : ''}
+    </div>`;
+}
+
+function renderToolPicker(){
+  const mode = state.pickerMode;
+  const r = state.pickerResult;
+  return `
+    <div class="tool-card">
+      <div class="tool-card-title">${svgIcon('shuffle')} Random Group / Name Picker</div>
+      <div class="tool-card-sub">Class projects ke liye groups banayein ya ek random naam pick karein.</div>
+      <div class="seg-toggle">
+        <button type="button" class="${mode==='groups'?'active':''}" data-act="picker-mode" data-val="groups">Groups Banayein</button>
+        <button type="button" class="${mode==='pick'?'active':''}" data-act="picker-mode" data-val="pick">Ek Naam Choose Karein</button>
+      </div>
+      <div class="field"><label>Names (ek line mein ek naam)</label><textarea id="picker-names" rows="5" placeholder="Aman&#10;Riya&#10;Sahil&#10;Priya">${esc(state.groupNamesInput)}</textarea></div>
+      ${mode==='groups' ? `<div class="field"><label>Har group mein kitne log?</label><input id="picker-size" type="number" min="1" value="${esc(state.groupSize)}" /></div>` : ''}
+      <button type="button" class="btn-primary" data-act="picker-run">${svgIcon('shuffle')} ${mode==='groups'?'Groups Banayein':'Random Naam Choose Karein'}</button>
+      ${r && r.type==='pick' ? `<div class="tool-result"><div class="tool-result-num">${esc(r.name)}</div></div>` : ''}
+      ${r && r.type==='groups' ? `
+        <div style="margin-top:14px">
+          ${r.groups.map((g,i) => `<div class="tool-result" style="text-align:left;margin-top:8px"><div class="tool-result-label" style="margin-bottom:6px">Group ${i+1}</div><div style="font-size:14px">${g.map(esc).join(', ')}</div></div>`).join('')}
+        </div>` : ''}
+    </div>`;
+}
+
+function renderToolTyping(){
+  if (!state.typing.sample) {
+    state.typing.sample = TYPING_SAMPLES[Math.floor(Math.random()*TYPING_SAMPLES.length)];
+  }
+  const t = state.typing;
+  return `
+    <div class="tool-card">
+      <div class="tool-card-title">${svgIcon('keyboard')} Typing Speed Test</div>
+      <div class="tool-card-sub">Neeche wala text jaldi aur sahi type karke apna WPM check karein.</div>
+      <div class="typing-sample">${t.sample.split('').map((ch,i) => {
+        let cls = '';
+        if (i < t.typed.length) cls = t.typed[i] === ch ? 'ok' : 'bad';
+        return `<span class="${cls}">${esc(ch)}</span>`;
+      }).join('')}</div>
+      <div class="field"><textarea id="typing-input" rows="3" placeholder="Yahan type karna shuru karein…" ${t.status==='done'?'disabled':''}>${esc(t.typed)}</textarea></div>
+      <div class="timer-btn-row">
+        ${t.status!=='done' ? `<button type="button" class="btn-start" data-act="typing-finish">Finish</button>` : ''}
+        <button type="button" class="btn-reset" data-act="typing-reset">Naya Test</button>
+      </div>
+      ${t.status==='done' ? `
+        <div class="tool-result">
+          <div class="tool-result-num">${t.wpm} WPM</div>
+          <div class="tool-result-label">Accuracy: ${t.accuracy}%</div>
+        </div>` : ''}
+    </div>`;
+}
+
+function renderToolStopwatch(){
+  const sw = state.stopwatch;
+  return `
+    <div class="tool-card">
+      <div class="tool-card-title">${svgIcon('stopwatch')} Simple Stopwatch</div>
+      <div class="tool-card-sub">Basic stopwatch, lap times ke saath.</div>
+      <div class="timer-display">${fmtStopwatch(sw.seconds)}</div>
+      <div class="timer-btn-row">
+        <button type="button" class="btn-start" data-act="${sw.running?'pause-stopwatch':'start-stopwatch'}">${sw.running ? 'Pause' : 'Start'}</button>
+        <button type="button" class="btn-reset" data-act="lap-stopwatch">Lap</button>
+        <button type="button" class="btn-reset" data-act="reset-stopwatch">Reset</button>
+      </div>
+      ${sw.laps.length > 0 ? `
+        <div style="margin-top:14px">
+          ${sw.laps.map((l,i) => `<div class="note-item"><div class="note-item-text">Lap ${sw.laps.length-i}</div><div class="note-item-text" style="text-align:right;font-family:'IBM Plex Mono',monospace">${fmtStopwatch(l)}</div></div>`).join('')}
+        </div>` : ''}
     </div>`;
 }
 
@@ -1502,7 +2083,11 @@ function renderProfile(){
       </div>
       <div class="field">
         <label>Naam</label>
-        <input id="profile-name" value="${esc(e.name)}" />
+        <input id="profile-name" value="${esc(e.name)}" ${nameChangeDaysLeft(profile) > 0 ? 'disabled' : ''} />
+        <div class="verify-hint" style="margin-top:6px">${nameChangeDaysLeft(profile) > 0
+          ? `Naam abhi lock hai — dobara ${nameChangeDaysLeft(profile)} din baad badal sakte hain (misuse rokne ke liye, mahine mein sirf ek baar naam change hota hai).`
+          : `Naam badalne ke baad agla change kam se kam ${NAME_CHANGE_COOLDOWN_DAYS} din baad hi ho sakega — photo kabhi bhi badal sakte hain. Har profile ka naam poori website par unique hona zaroori hai.`}</div>
+        ${state.profileNameError ? `<div class="error-note">${esc(state.profileNameError)}</div>` : ''}
       </div>
       <div class="chip-row">
         <div class="chip"><div class="chip-label">Class</div><div class="chip-value">${esc(profile.class)}</div></div>
@@ -1666,14 +2251,18 @@ function bindEvents(){
 
   on('[data-act="logout"]', 'click', async () => {
     if (state.timer.running) pauseTimer();
-    state.profileEdit=null; state.viewingProfile=null; state.chatWith=null; state.chatList=[]; state.searchQuery='';
+    if (state.stopwatch.running) pauseStopwatch();
+    state.profileEdit=null; state.profileNameError=''; state.viewingProfile=null; state.chatWith=null; state.chatList=[]; state.searchQuery='';
     try { await auth.signOut(); } catch(e){}
   });
   on('[data-act="toggle-theme"]', 'click', toggleTheme);
-  // Tools tab se bahar jaate waqt study timer ko background mein chalte
-  // rehne dene ki zaroorat nahi — pause kar dete hain taaki har second
-  // ki re-render dusre tabs mein waste na ho.
-  const leaveTools = () => { if (state.tab === 'tools' && state.timer.running) pauseTimer(); };
+  // Tools tab se bahar jaate waqt study timer/stopwatch ko background mein
+  // chalte rehne dene ki zaroorat nahi — pause kar dete hain taaki har
+  // second ki re-render dusre tabs mein waste na ho.
+  const leaveTools = () => {
+    if (state.tab === 'tools' && state.timer.running) pauseTimer();
+    if (state.tab === 'tools' && state.stopwatch.running) pauseStopwatch();
+  };
   on('[data-act="tab-home"]', 'click', () => { leaveTools(); state.tab='home'; state.viewingProfile=null; state.chatWith=null; render(); fetchFeed(); });
   on('[data-act="tab-search"]', 'click', () => { leaveTools(); state.tab='search'; state.viewingProfile=null; state.chatWith=null; render(); fetchProfiles(); });
   on('[data-act="tab-tools"]', 'click', () => { state.tab='tools'; state.viewingProfile=null; state.chatWith=null; render(); });
@@ -1724,6 +2313,7 @@ function bindEvents(){
   } else if (state.tab === 'tools'){
     onAll('[data-act="tool-tab"]', 'click', e => {
       if (state.timer.running) pauseTimer();
+      if (state.stopwatch.running) pauseStopwatch();
       state.toolTab = e.currentTarget.dataset.val; render();
     });
     // calculator
@@ -1746,6 +2336,60 @@ function bindEvents(){
     on('[data-act="note-add"]', 'click', addNote);
     onAll('[data-act="note-toggle"]', 'click', e => toggleNote(Number(e.currentTarget.dataset.id)));
     onAll('[data-act="note-delete"]', 'click', e => deleteNote(Number(e.currentTarget.dataset.id)));
+    // unit converter
+    onAll('[data-act="uc-cat"]', 'click', e => {
+      const cat = e.currentTarget.dataset.val;
+      const units = Object.keys(UNIT_DATA[cat].units);
+      state.unitConv = { cat, from: units[0], to: units[1] || units[0], val: state.unitConv.val };
+      render();
+    });
+    on('#uc-val', 'input', e => { state.unitConv.val = e.target.value; render(); });
+    on('#uc-from', 'change', e => { state.unitConv.from = e.target.value; render(); });
+    on('#uc-to', 'change', e => { state.unitConv.to = e.target.value; render(); });
+    on('[data-act="uc-swap"]', 'click', () => { const c = state.unitConv; const f = c.from; c.from = c.to; c.to = f; render(); });
+    // periodic table
+    on('#periodic-search', 'input', e => { state.periodicSearch = e.target.value; render(); });
+    onAll('[data-act="periodic-pick"]', 'click', e => {
+      const id = Number(e.currentTarget.dataset.id);
+      state.periodicSelected = state.periodicSelected === id ? null : id;
+      render();
+    });
+    // formula sheet
+    onAll('[data-act="formula-subject"]', 'click', e => { state.formulaSubject = e.currentTarget.dataset.val; render(); });
+    // weekly timetable
+    onAll('[data-act="tt-day"]', 'click', e => { state.timetableDay = e.currentTarget.dataset.val; render(); });
+    on('#tt-time', 'input', e => { state.ttForm.time = e.target.value; });
+    on('#tt-subject', 'input', e => { state.ttForm.subject = e.target.value; });
+    on('[data-act="tt-add"]', 'click', addTimetableEntry);
+    onAll('[data-act="tt-delete"]', 'click', e => deleteTimetableEntry(e.currentTarget.dataset.day, Number(e.currentTarget.dataset.id)));
+    // study checklist
+    on('#checklist-input', 'input', e => { state.checklistInput = e.target.value; });
+    on('[data-act="checklist-add"]', 'click', addChecklistItem);
+    onAll('[data-act="checklist-toggle"]', 'click', e => toggleChecklistItem(Number(e.currentTarget.dataset.id)));
+    onAll('[data-act="checklist-delete"]', 'click', e => deleteChecklistItem(Number(e.currentTarget.dataset.id)));
+    // word/character counter
+    on('#wc-text', 'input', e => { state.wordCounterText = e.target.value; render(); });
+    // age calculator
+    on('#age-dob', 'input', e => { state.ageDob = e.target.value; render(); });
+    // random group/name picker
+    onAll('[data-act="picker-mode"]', 'click', e => { state.pickerMode = e.currentTarget.dataset.val; state.pickerResult = null; render(); });
+    on('#picker-names', 'input', e => { state.groupNamesInput = e.target.value; });
+    on('#picker-size', 'input', e => { state.groupSize = e.target.value; });
+    on('[data-act="picker-run"]', 'click', runPicker);
+    // typing speed test
+    on('#typing-input', 'input', e => {
+      const t = state.typing;
+      if (t.status === 'idle') { t.status = 'running'; t.startTime = Date.now(); }
+      t.typed = e.target.value;
+      render();
+    });
+    on('[data-act="typing-finish"]', 'click', finishTypingTest);
+    on('[data-act="typing-reset"]', 'click', newTypingTest);
+    // simple stopwatch
+    on('[data-act="start-stopwatch"]', 'click', startStopwatch);
+    on('[data-act="pause-stopwatch"]', 'click', pauseStopwatch);
+    on('[data-act="reset-stopwatch"]', 'click', resetStopwatch);
+    on('[data-act="lap-stopwatch"]', 'click', lapStopwatch);
   } else if (state.tab === 'chat'){
     onAll('[data-act="open-chat"]', 'click', e => openChat(e.currentTarget.dataset.id));
   } else if (state.tab === 'admin'){
@@ -1843,6 +2487,21 @@ async function handleCreate(){
     }
 
     const cred = await withTimeout(auth.createUserWithEmailAndPassword(emailForId(id), password), 15000);
+
+    /* Naam sign-in hone ke baad hi check ho sakta hai (Firestore Rules
+       mein profiles read sirf logged-in user ke liye allowed hai) —
+       isliye yeh check auth account banne ke turant baad, profile
+       Firestore mein save hone se PEHLE karte hain. Agar naam pehle se
+       kisi ka hai, to abhi-abhi bana auth account bhi turant delete
+       kar dete hain, taaki koi orphan/adhoora account na bache. */
+    const nameTaken = await nameAlreadyTaken(f.name.trim(), id);
+    if (nameTaken) {
+      state.authError = 'Yeh naam pehle se kisi aur (student ya admin) ke profile mein use ho raha hai. Kripya thoda alag naam try karein (jaise surname/middle name add karke).';
+      try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
+      state.authBusy = false;
+      return render();
+    }
+
     const photoUrl = await withTimeout(uploadDataUrl(f.photo, 'profile-photos', cred.user.uid), 20000).catch(() => '');
     const newProfile = isAdmin
       ? { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:'Staff', section:'', subject:f.subject.trim(), role:'admin', following:[], followers:[], blocked:[], verified:true, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' }
@@ -1950,14 +2609,35 @@ async function handleSaveProfile(){
      "true" set karega. Isse koi bhi random number/photo daal kar
      turant Blue Tick nahi le sakta. */
   const verificationRequested = pct !== null && !isNaN(pct) && pct >= 78 && !!marksheetPhoto;
+
+  /* Naam sirf mahine mein ek baar badal sakta hai (student ho ya admin,
+     dono ke liye). Agar cooldown chal raha hai to naam purana hi rehta
+     hai — baaki (photo/marksheet) normally save ho jaata hai. Naya naam
+     poori website par kisi aur ke profile mein already use nahi hona
+     chahiye — dono students aur admin ke naam is check mein aate hain. */
+  const requestedName = e.name.trim() || profile.name;
+  const nameChanged = requestedName !== profile.name;
+  const stillLocked = nameChangeDaysLeft(profile) > 0;
+  state.profileNameError = '';
+  let nameUpdate = {};
+  if (nameChanged && !stillLocked) {
+    const taken = await nameAlreadyTaken(requestedName, state.session);
+    if (taken) {
+      state.profileNameError = 'Yeh naam pehle se kisi aur (student ya admin) ke profile mein use ho raha hai — koi doosra naam try karein.';
+    } else {
+      nameUpdate = { name: requestedName, lastNameChangeAt: Date.now() };
+    }
+  }
+
   const updated = {
-    name: e.name.trim() || profile.name,
+    ...nameUpdate,
     photo: photoUrl,
     marksheetPercent: pct,
     marksheetPhoto,
     verificationRequested,
   };
   try { await db.collection('profiles').doc(state.session).update(updated); state.profiles[state.session] = { ...profile, ...updated }; } catch(e){}
+  if (!state.profileNameError) state.profileEdit = null;
   state.profileSaved = true;
   render();
   setTimeout(() => { state.profileSaved = false; render(); }, 1800);
