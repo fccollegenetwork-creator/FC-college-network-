@@ -296,7 +296,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.13.0/firebase-app-compat.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.13.0/firebase-auth-compat.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.13.0/firebase-firestore-compat.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- Sirf ek chhoti si (~5KB) client-side QR library — "Apne ID Card ka QR
      Code" tool ke liye. Ye bhi sirf ek baar, page load ke waqt aati hai,
      uske baad QR poori tarah browser ke andar hi bin bina naya generate
@@ -339,6 +338,14 @@ const CLOUDINARY_UPLOAD_PRESET = 'Ffcupload';
    di gayi hain) — koi bhi jo yeh code jaanta hai admin account bana sakta
    hai, isliye ise sirf trusted staff ke saath share karein. */
 const ADMIN_CODE = 'FFC-STAFF-2026';
+
+/* ===== Total user cap (school-scale limit) =====
+   Poori website par (student + admin dono milakar) maximum itne hi
+   accounts ban sakte hain. Yeh naya signup band karne ke liye hai —
+   jo already registered hain unko koi farak nahi padta, wo hamesha
+   ki tarah login karte rahenge. Limit badalni ho to bas neeche wala
+   number badal dijiye. */
+const MAX_TOTAL_USERS = 800;
 
 /* ===== Passing-year auto account close (Part 1 — free, bina card ke) =====
    Sirf Class 12 (final year) students ke liye admin whitelist mein
@@ -710,37 +717,6 @@ function resizeImage(file, maxDim){
   });
 }
 
-/* ID card ki photo se "S R No." nikaal kar School ID Card Number field mein
-   apne aap bhar deta hai (client-side OCR, koi server/API key nahi chahiye).
-   Sirf "S R No." label ke paas wala number use karte hain, taaki card par
-   maujood dusre numbers (phone, date of birth, contact no.) galti se pick
-   na ho jayen — agar label wala number na mile to user ko khud likhne ko
-   kaha jaata hai. */
-async function scanIdCardPhoto(file){
-  state.idScan = { status: 'scanning', message: '' };
-  render();
-  try {
-    if (typeof Tesseract === 'undefined') throw new Error('ocr-not-loaded');
-    const resized = await resizeImage(file, 1000);
-    const result = await Tesseract.recognize(resized, 'eng');
-    const text = (result && result.data && result.data.text) || '';
-
-    let found = null;
-    const labelMatch = /S\s*[.\-]?\s*R\s*[.\-]?\s*N?o?\.?\s*[-:]?\s*(\d{3,6})/i.exec(text);
-    if (labelMatch) found = labelMatch[1];
-
-    if (found){
-      state.authForm.idCard = found;
-      state.idScan = { status: 'success', message: '' };
-    } else {
-      state.idScan = { status: 'error', message: 'Photo se "S R No." nahi mil paya. Photo clear khinchein ya number khud likh dein.' };
-    }
-  } catch(e){
-    state.idScan = { status: 'error', message: 'Photo padhne mein dikkat aayi. Dobara try karein ya number khud likh dein.' };
-  }
-  render();
-}
-
 /* Photo ko resize karke, base64 ki jagah Cloudinary par upload karta hai
    aur uska image URL wapas deta hai. Pehle photos seedhe Firestore document
    ke andar base64 text ki tarah save hoti thi — isse documents bade ho jaate
@@ -787,30 +763,7 @@ function parseIdCard(id){
 
 function verifiedBadge(profile){
   if (!profile || !profile.verified) return '';
-  return `<span class="verified-badge" title="Verified · 78%+ marksheet">${svgIcon('verified').replace(/currentColor/g,'var(--navy)')}</span>`;
-}
-
-/* ID card photo se number scan karne wala button + status UI.
-   prefix 'login' ya 'create' — dono forms mein alag input id use karte hain. */
-function idPhotoScanUI(prefix){
-  const s = state.idScan || { status:'', message:'' };
-  const busy = s.status === 'scanning';
-  let statusHtml = '';
-  if (s.status === 'scanning'){
-    statusHtml = `<div class="verify-hint" style="margin-top:6px;color:var(--navy)">Photo se number padha ja raha hai…</div>`;
-  } else if (s.status === 'success'){
-    statusHtml = `<div class="verify-hint" style="margin-top:6px;color:var(--sage)">Number mil gaya — neeche field mein check kar lein, sahi na ho to khud edit kar dein.</div>`;
-  } else if (s.status === 'error'){
-    statusHtml = `<div class="verify-hint" style="margin-top:6px;color:var(--maroon)">${esc(s.message || 'Photo se number nahi padh paaye, khud likh dein.')}</div>`;
-  }
-  return `
-    <div style="margin-top:8px">
-      <input type="file" accept="image/*" capture="environment" id="${prefix}-id-photo-input" class="hidden" />
-      <button type="button" class="btn-ghost" data-act="scan-id-photo" data-prefix="${prefix}" ${busy?'disabled':''} style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px">
-        ${svgIcon('camera') || ''} ${busy ? 'Padha ja raha hai…' : 'ID Card ki Photo se Number Bharen'}
-      </button>
-      ${statusHtml}
-    </div>`;
+  return `<span class="verified-badge" title="Verified">${svgIcon('verified').replace(/currentColor/g,'var(--navy)')}</span>`;
 }
 
 function idCardHTML(profile, size){
@@ -1241,7 +1194,6 @@ const state = {
   chatList: [],
   chatUploading: false,
   chatError: '',
-  idScan: { status: '', message: '' },
 
   /* ---- Tools tab state ----
      Ye sab sirf is browser ki localStorage mein rehta hai, Firestore ko
@@ -1328,7 +1280,7 @@ function renderAuth(){
           <span class="brand-title">FC College Network</span>
         </div>
         <h1 class="brand-headline">Class 10–12 ka apna network.</h1>
-        <p class="brand-sub">Section A aur B ke students apni daily life share karte hain — sirf school ID card se sign in karke.</p>
+        <p class="brand-sub">Section A aur B ke students post aur baat-cheet karte hain — sirf school ID card se sign in karke.</p>
       </div>
       <div class="brand-card">
         ${idCardHTML(previewProfile, 'full')}
@@ -1351,7 +1303,6 @@ function renderAuth(){
             <label>School ID Card Number</label>
             <input id="login-id" placeholder="jaise: 11851" value="${esc(f.idCard)}" />
             <div class="verify-hint" style="margin:6px 2px 0">Apne school ID card par likha "S R No." daaliye (sirf number)</div>
-            ${idPhotoScanUI('login')}
           </div>
           <div class="field">
             <label>Password</label>
@@ -1369,7 +1320,6 @@ function renderAuth(){
             <label>${f.role==='admin' ? 'Staff ID Card Number' : 'School ID Card Number'}</label>
             <input id="create-id" placeholder="jaise: 11851" value="${esc(f.idCard)}" />
             <div class="verify-hint" style="margin:6px 2px 0">Apne school ID card par likha "S R No." daaliye (sirf number, jaise 11851)</div>
-            ${idPhotoScanUI('create')}
           </div>
           <div class="field">
             <label>Password</label>
@@ -2032,6 +1982,7 @@ function renderHome(){
               <div class="post-meta">Class ${esc(p.class)} · Sec ${esc(p.section)} · ${timeAgo(p.time)}</div>
             </div>
             <span class="section-pill" style="background:${SECTION_COLOR[p.section]||'var(--navy)'}">${esc(p.section)}</span>
+            ${p.idCard === state.session ? `<button type="button" class="btn-ghost" data-act="delete-post" data-id="${p.id}" style="padding:6px 8px;margin-left:6px">${svgIcon('trash') || 'Delete'}</button>` : ''}
           </div>
           ${p.text ? `<div class="post-text">${esc(p.text)}</div>` : ''}
           ${p.image ? `<img class="post-image" src="${p.image}" />` : ''}
@@ -2045,7 +1996,7 @@ function renderHome(){
     <div class="card composer">
       <div class="avatar" style="width:38px;height:38px">${profile.photo ? `<img src="${profile.photo}"/>` : svgIcon('user').replace('currentColor','var(--ink-soft)')}</div>
       <div class="composer-body">
-        <textarea id="composer-text" rows="2" placeholder="Aaj apni daily life share karein…">${esc(c.text)}</textarea>
+        <textarea id="composer-text" rows="2" placeholder="Kuch likhein…">${esc(c.text)}</textarea>
         ${c.image ? `<div class="composer-preview"><img src="${c.image}"/><button type="button" data-act="clear-image">${svgIcon('x')}</button></div>` : ''}
         ${c.error ? `<div class="blocked-note">${esc(c.error)}</div>` : ''}
         <div class="composer-actions">
@@ -2068,9 +2019,8 @@ function renderHome(){
 
 function renderProfile(){
   const profile = state.profiles[state.session];
-  if (!state.profileEdit) state.profileEdit = { name: profile.name, photo: profile.photo, marksheetPercent: profile.marksheetPercent ?? '', marksheetPhoto: profile.marksheetPhoto || '' };
+  if (!state.profileEdit) state.profileEdit = { name: profile.name, photo: profile.photo };
   const e = state.profileEdit;
-  const isVerified = !!profile.verified;
 
   return `
     <div class="profile-card-wrap">${idCardHTML({ ...profile, name: e.name, photo: e.photo, verified: profile.verified }, 'full')}</div>
@@ -2098,21 +2048,6 @@ function renderProfile(){
         <div class="stat-box"><div class="stat-num">${(profile.followers||[]).length}</div><div class="stat-label">Followers</div></div>
         <div class="stat-box"><div class="stat-num">${(profile.following||[]).length}</div><div class="stat-label">Following</div></div>
       </div>
-
-      ${profile.role !== 'admin' ? `
-      <div class="verify-box">
-        <div class="verify-status ${isVerified?'on':''}">${isVerified ? svgIcon('verified').replace(/currentColor/g,'var(--navy)') : svgIcon('shield')} ${isVerified ? 'Aap verified hain (Blue Tick)' : (profile.verificationRequested ? 'Request bhej di gayi — admin approval ka wait hai' : 'Blue Tick ke liye apply karein')}</div>
-        <div class="field">
-          <label>Marksheet % (last exam)</label>
-          <input id="marksheet-percent" type="number" min="0" max="100" placeholder="jaise: 82" value="${e.marksheetPercent === '' ? '' : esc(String(e.marksheetPercent))}" />
-        </div>
-        <div class="photo-row">
-          <div class="photo-thumb">${e.marksheetPhoto ? `<img src="${e.marksheetPhoto}"/>` : svgIcon('upload').replace('currentColor','var(--ink-soft)')}</div>
-          <button type="button" class="btn-ghost" data-act="pick-marksheet">Marksheet upload karein</button>
-          <input id="marksheet-photo-input" type="file" accept="image/*" hidden />
-        </div>
-        <div class="verify-hint">Marksheet ki photo upload karna zaroori hai. Photo upload + 78% ya usse zyada — dono hone par ek verification request bhej di jaayegi. Blue Tick turant nahi milega — school admin marksheet dekh kar manually approve karega, tabhi Blue Tick milega.</div>
-      </div>` : ''}
 
       <button type="button" class="btn-primary" data-act="save-profile">
         ${state.profileSaved ? svgIcon('check') + ' Saved' : 'Profile save karein ' + svgIcon('chevron')}
@@ -2226,8 +2161,6 @@ function bindEvents(){
     on('#login-id', 'input', e => state.authForm.idCard = e.target.value);
     on('#login-password', 'input', e => state.authForm.password = e.target.value);
     on('[data-act="login"]', 'click', handleLogin);
-    on('[data-act="scan-id-photo"][data-prefix="login"]', 'click', () => root.querySelector('#login-id-photo-input').click());
-    on('#login-id-photo-input', 'change', e => { const file = e.target.files[0]; if (file) scanIdCardPhoto(file); });
 
     on('[data-act="role-student"]', 'click', () => { state.authForm.role='student'; state.authError=''; render(); });
     on('[data-act="role-admin"]', 'click', () => { state.authForm.role='admin'; state.authError=''; render(); });
@@ -2243,8 +2176,6 @@ function bindEvents(){
       state.authForm.photo = await resizeImage(file); // login se pehle koi session/uid nahi hota, isliye upload nahi ho sakta — turant preview ke liye base64 hi rakhte hain; account banate hi ye Storage par upload ho jaayegi (handleCreate mein)
       render();
     });
-    on('[data-act="scan-id-photo"][data-prefix="create"]', 'click', () => root.querySelector('#create-id-photo-input').click());
-    on('#create-id-photo-input', 'change', e => { const file = e.target.files[0]; if (file) scanIdCardPhoto(file); });
     on('[data-act="create"]', 'click', handleCreate);
     return;
   }
@@ -2305,6 +2236,7 @@ function bindEvents(){
     on('[data-act="post"]', 'click', handlePost);
     onAll('[data-act="filter"]', 'click', e => { state.sectionFilter = e.currentTarget.dataset.val; render(); });
     onAll('[data-act="like"]', 'click', e => handleLike(e.currentTarget.dataset.id));
+    onAll('[data-act="delete-post"]', 'click', e => handleDeletePost(e.currentTarget.dataset.id));
     onAll('[data-act="open-profile"]', 'click', e => { state.viewingProfile = e.currentTarget.dataset.id; render(); });
   } else if (state.tab === 'search'){
     on('#search-input', 'input', e => { state.searchQuery = e.target.value; render(); });
@@ -2409,13 +2341,6 @@ function bindEvents(){
       state.profileEdit.photo = await resizeImage(file);
       render();
     });
-    on('#marksheet-percent', 'input', e => state.profileEdit.marksheetPercent = e.target.value);
-    on('[data-act="pick-marksheet"]', 'click', () => root.querySelector('#marksheet-photo-input').click());
-    on('#marksheet-photo-input', 'change', async e => {
-      const file = e.target.files[0]; if (!file) return;
-      state.profileEdit.marksheetPhoto = await resizeImage(file, 480);
-      render();
-    });
     on('[data-act="save-profile"]', 'click', handleSaveProfile);
     on('#pw-current', 'input', e => { state.passwordChange.current = e.target.value; state.passwordChange.error=''; state.passwordChange.success=false; });
     on('#pw-next', 'input', e => { state.passwordChange.next = e.target.value; state.passwordChange.error=''; state.passwordChange.success=false; });
@@ -2488,6 +2413,23 @@ async function handleCreate(){
 
     const cred = await withTimeout(auth.createUserWithEmailAndPassword(emailForId(id), password), 15000);
 
+    /* ===== Total user cap check =====
+       'profiles' collection sirf logged-in user hi read kar sakta hai
+       (Firestore Rules), isliye yeh check bhi Auth account banne ke
+       BAAD hi ho sakta hai — bilkul naam-duplicate check jaisa pattern.
+       Poori collection ka count liya jaata hai (student + admin dono
+       milakar); fetchProfiles bhi waise hi poori collection fetch
+       karta hai, isliye yeh ek extra read school-scale app ke liye
+       theek hai. Limit poori mile to abhi-abhi bana Auth account turant
+       delete kar dete hain, taaki koi orphan/adhoora account na bache. */
+    const profilesSnap = await withTimeout(db.collection('profiles').get(), 15000);
+    if (profilesSnap.size >= MAX_TOTAL_USERS) {
+      state.authError = `FFC College Network par register hone ki limit (${MAX_TOTAL_USERS} users) poori ho chuki hai. Naye account is waqt nahi ban sakte — school admin se sampark karein.`;
+      try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
+      state.authBusy = false;
+      return render();
+    }
+
     /* Naam sign-in hone ke baad hi check ho sakta hai (Firestore Rules
        mein profiles read sirf logged-in user ke liye allowed hai) —
        isliye yeh check auth account banne ke turant baad, profile
@@ -2524,10 +2466,11 @@ function todayStr(){
    posts ya chat photo/PDF bhej kar Cloudinary/Firestore ka free quota
    akela hi khatam na kar de. Admin/staff par ye limit nahi lagti.
    Count khud us student ki apni profile document mein save hota hai
-   (usage.date/usage.posts/usage.attachments) — security rules ke
-   mutabik student apni hi profile ke non-verified fields khud badal
-   sakta hai, isliye koi rule change karne ki zarurat nahi padi.
-   runTransaction use kiya hai taaki double-tap se count galat na ho. */
+   (usage.date/usage.posts/usage.postPhotos/usage.chatPhotos/
+   usage.chatPdfs) — security rules ke mutabik student apni hi profile
+   ke non-verified fields khud badal sakta hai, isliye koi rule change
+   karne ki zarurat nahi padi. runTransaction use kiya hai taaki
+   double-tap se count galat na ho. */
 async function checkAndBumpUsage(kind, limit){
   const me = state.profiles[state.session];
   if (me && me.role === 'admin') return { allowed: true };
@@ -2538,8 +2481,9 @@ async function checkAndBumpUsage(kind, limit){
     await db.runTransaction(async tx => {
       const snap = await tx.get(ref);
       const data = snap.data() || {};
-      let usage = data.usage || { date: today, posts: 0, attachments: 0 };
-      if (usage.date !== today) usage = { date: today, posts: 0, attachments: 0 };
+      const blank = { date: today, posts: 0, postPhotos: 0, chatPhotos: 0, chatPdfs: 0 };
+      let usage = data.usage || blank;
+      if (usage.date !== today) usage = { ...blank };
       const current = usage[kind] || 0;
       if (current >= limit) { result = { allowed: false, count: current }; return; }
       usage[kind] = current + 1;
@@ -2556,12 +2500,21 @@ async function checkAndBumpUsage(kind, limit){
 }
 
 const DAILY_POST_LIMIT = 5;
-const DAILY_ATTACHMENT_LIMIT = 10;
+const DAILY_POST_PHOTO_LIMIT = 1;
+const DAILY_CHAT_PHOTO_LIMIT = 5;
+const DAILY_CHAT_PDF_LIMIT = 5;
 
 async function handlePost(){
   const c = state.composer;
   if (!c.text.trim() && !c.image) return;
   c.error = '';
+  if (c.image){
+    const photoCheck = await checkAndBumpUsage('postPhotos', DAILY_POST_PHOTO_LIMIT);
+    if (!photoCheck.allowed){
+      c.error = `Aaj ki photo upload limit (${DAILY_POST_PHOTO_LIMIT}) khatam ho gayi hai. Sirf text ke saath post karein, ya kal photo ke saath try karein.`;
+      return render();
+    }
+  }
   const usageCheck = await checkAndBumpUsage('posts', DAILY_POST_LIMIT);
   if (!usageCheck.allowed){
     c.error = `Aaj ki post limit (${DAILY_POST_LIMIT}) khatam ho gayi hai. Kal phir try karein.`;
@@ -2596,23 +2549,29 @@ async function handleLike(postId){
   } catch(e){}
 }
 
+async function handleDeletePost(postId){
+  const post = state.feed.find(p => p.id === postId);
+  if (!post) return;
+  if (!confirm('Ye post delete karna chahte hain?')) return;
+  const idx = state.feed.indexOf(post);
+  state.feed.splice(idx, 1);
+  render();
+  try {
+    await db.collection('posts').doc(postId).delete();
+  } catch(e){
+    state.feed.splice(idx, 0, post);
+    render();
+  }
+}
+
 async function handleSaveProfile(){
   const profile = state.profiles[state.session];
   const e = state.profileEdit;
-  const pctRaw = e.marksheetPercent;
-  const pct = (pctRaw === '' || pctRaw === null || pctRaw === undefined) ? null : Number(pctRaw);
   const photoUrl = await uploadDataUrl(e.photo, 'profile-photos').catch(() => profile.photo || '');
-  const marksheetPhoto = await uploadDataUrl(e.marksheetPhoto || profile.marksheetPhoto || '', 'marksheet-photos').catch(() => profile.marksheetPhoto || '');
-  /* Verification ab auto-instant nahi hoti — sirf ek "request" ban jaati hai.
-     Asli Blue Tick tabhi milega jab school admin Firebase Console mein
-     is profile ka marksheet photo dekh kar "verified" field ko khud
-     "true" set karega. Isse koi bhi random number/photo daal kar
-     turant Blue Tick nahi le sakta. */
-  const verificationRequested = pct !== null && !isNaN(pct) && pct >= 78 && !!marksheetPhoto;
 
   /* Naam sirf mahine mein ek baar badal sakta hai (student ho ya admin,
      dono ke liye). Agar cooldown chal raha hai to naam purana hi rehta
-     hai — baaki (photo/marksheet) normally save ho jaata hai. Naya naam
+     hai — baaki (photo) normally save ho jaata hai. Naya naam
      poori website par kisi aur ke profile mein already use nahi hona
      chahiye — dono students aur admin ke naam is check mein aate hain. */
   const requestedName = e.name.trim() || profile.name;
@@ -2632,9 +2591,6 @@ async function handleSaveProfile(){
   const updated = {
     ...nameUpdate,
     photo: photoUrl,
-    marksheetPercent: pct,
-    marksheetPhoto,
-    verificationRequested,
   };
   try { await db.collection('profiles').doc(state.session).update(updated); state.profiles[state.session] = { ...profile, ...updated }; } catch(e){}
   if (!state.profileNameError) state.profileEdit = null;
@@ -2779,6 +2735,33 @@ async function handleAdminRemoveId(id){
 
 function chatKey(a, b){ return [a, b].sort().join('__'); }
 
+/* ===== Purane chat messages ka auto-cleanup (Firestore quota bachane ke
+   liye) =====
+   6 mahine se purane chat messages Firestore se apne aap delete ho
+   jaate hain, jab bhi wo chat kholi jaati hai — isse Firestore storage
+   aur reads dono lambe samay tak free tier mein rehte hain.
+   IMPORTANT: yeh sirf Firestore ka message document delete karta hai.
+   Attachment ki asli photo/PDF Cloudinary par store hoti hai, aur use
+   surakshit tarike se client-side delete nahi kiya ja sakta (uske liye
+   Cloudinary ki secret API key chahiye hoti, jo website ke code mein
+   kabhi nahi rakhni chahiye — koi bhi "view source" karke use dekh
+   kar poora account misuse kar sakta hai). Cloudinary storage khud
+   kabhi-kabhi Cloudinary dashboard se manually clear karna hi safe
+   tarika hai. Best-effort hai — fail ho to chat load hona nahi rukta. */
+const CHAT_MESSAGE_RETENTION_DAYS = 180;
+
+async function cleanupOldChatMessages(chatId){
+  const cutoff = Date.now() - (CHAT_MESSAGE_RETENTION_DAYS * 24 * 60 * 60 * 1000);
+  try {
+    const oldSnap = await db.collection('chats').doc(chatId).collection('messages')
+      .where('time', '<', cutoff).limit(50).get();
+    if (oldSnap.empty) return;
+    const batch = db.batch();
+    oldSnap.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+  } catch(e){ /* best-effort — fail ho to bhi chat normally kaam karti rahe */ }
+}
+
 async function openChat(contactId){
   state.viewingProfile = null;
   state.chatWith = contactId;
@@ -2801,6 +2784,8 @@ async function openChat(contactId){
       participantUids: [myUid, other.uid].sort(),
     }, { merge: true });
   } catch(e){}
+
+  cleanupOldChatMessages(chatId); /* fire-and-forget, chat load ko block nahi karta */
 
   if (unsubChatMsgs) unsubChatMsgs();
   unsubChatMsgs = db.collection('chats').doc(chatId).collection('messages')
@@ -2829,9 +2814,11 @@ async function handleSendChatFile(file){
     state.chatError = 'Sirf photo ya PDF hi bhej sakte hain.';
     return render();
   }
-  const usageCheck = await checkAndBumpUsage('attachments', DAILY_ATTACHMENT_LIMIT);
+  const usageCheck = await checkAndBumpUsage(isImage ? 'chatPhotos' : 'chatPdfs', isImage ? DAILY_CHAT_PHOTO_LIMIT : DAILY_CHAT_PDF_LIMIT);
   if (!usageCheck.allowed){
-    state.chatError = `Aaj ki photo/PDF bhejne ki limit (${DAILY_ATTACHMENT_LIMIT}) khatam ho gayi hai. Kal phir try karein.`;
+    state.chatError = isImage
+      ? `Aaj ki chat photo bhejne ki limit (${DAILY_CHAT_PHOTO_LIMIT}) khatam ho gayi hai. Kal phir try karein.`
+      : `Aaj ki chat PDF bhejne ki limit (${DAILY_CHAT_PDF_LIMIT}) khatam ho gayi hai. Kal phir try karein.`;
     return render();
   }
   /* Cloudinary free plan ka bandwidth bachane ke liye size par ek seedhi
