@@ -2413,43 +2413,62 @@ async function handleCreate(){
 
     const cred = await withTimeout(auth.createUserWithEmailAndPassword(emailForId(id), password), 15000);
 
-    /* ===== Total user cap check =====
-       'profiles' collection sirf logged-in user hi read kar sakta hai
-       (Firestore Rules), isliye yeh check bhi Auth account banne ke
-       BAAD hi ho sakta hai — bilkul naam-duplicate check jaisa pattern.
-       Poori collection ka count liya jaata hai (student + admin dono
-       milakar); fetchProfiles bhi waise hi poori collection fetch
-       karta hai, isliye yeh ek extra read school-scale app ke liye
-       theek hai. Limit poori mile to abhi-abhi bana Auth account turant
-       delete kar dete hain, taaki koi orphan/adhoora account na bache. */
-    const profilesSnap = await withTimeout(db.collection('profiles').get(), 15000);
-    if (profilesSnap.size >= MAX_TOTAL_USERS) {
-      state.authError = `FFC College Network par register hone ki limit (${MAX_TOTAL_USERS} users) poori ho chuki hai. Naye account is waqt nahi ban sakte — school admin se sampark karein.`;
-      try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
-      state.authBusy = false;
-      return render();
-    }
+    try {
+      /* Naya account banne ke turant baad, agla koi bhi Firestore call
+         (jaise neeche wala users-count check) kabhi-kabhi "permission-denied"
+         de sakta hai — kyunki naye account ka login-token Firestore tak
+         pahunchne mein ek pal ki der lag sakti hai. Isse ek adhoora/orphan
+         account ban jaata, jisme login ho jaata hai (kyunki account bana
+         hi tha) lekin profile kabhi nahi banti, aur wo ID card hamesha ke
+         liye atak jaata. Isse rokne ke liye, pehle token ko explicitly
+         refresh karke pakka karte hain ki wo Firestore ke liye taiyar hai. */
+      await withTimeout(cred.user.getIdToken(true), 15000);
 
-    /* Naam sign-in hone ke baad hi check ho sakta hai (Firestore Rules
-       mein profiles read sirf logged-in user ke liye allowed hai) —
-       isliye yeh check auth account banne ke turant baad, profile
-       Firestore mein save hone se PEHLE karte hain. Agar naam pehle se
-       kisi ka hai, to abhi-abhi bana auth account bhi turant delete
-       kar dete hain, taaki koi orphan/adhoora account na bache. */
-    const nameTaken = await nameAlreadyTaken(f.name.trim(), id);
-    if (nameTaken) {
-      state.authError = 'Yeh naam pehle se kisi aur (student ya admin) ke profile mein use ho raha hai. Kripya thoda alag naam try karein (jaise surname/middle name add karke).';
-      try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
-      state.authBusy = false;
-      return render();
-    }
+      /* ===== Total user cap check =====
+         'profiles' collection sirf logged-in user hi read kar sakta hai
+         (Firestore Rules), isliye yeh check bhi Auth account banne ke
+         BAAD hi ho sakta hai — bilkul naam-duplicate check jaisa pattern.
+         Poori collection ka count liya jaata hai (student + admin dono
+         milakar); fetchProfiles bhi waise hi poori collection fetch
+         karta hai, isliye yeh ek extra read school-scale app ke liye
+         theek hai. Limit poori mile to abhi-abhi bana Auth account turant
+         delete kar dete hain, taaki koi orphan/adhoora account na bache. */
+      const profilesSnap = await withTimeout(db.collection('profiles').get(), 15000);
+      if (profilesSnap.size >= MAX_TOTAL_USERS) {
+        state.authError = `FFC College Network par register hone ki limit (${MAX_TOTAL_USERS} users) poori ho chuki hai. Naye account is waqt nahi ban sakte — school admin se sampark karein.`;
+        try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
+        state.authBusy = false;
+        return render();
+      }
 
-    const photoUrl = await withTimeout(uploadDataUrl(f.photo, 'profile-photos', cred.user.uid), 20000).catch(() => '');
-    const newProfile = isAdmin
-      ? { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:'Staff', section:'', subject:f.subject.trim(), role:'admin', following:[], followers:[], blocked:[], verified:true, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' }
-      : { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:studentClass, section:studentSection, passYear:studentPassYear, subject:f.subject.trim(), role:'student', following:[], followers:[], blocked:[], verified:false, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' };
-    await withTimeout(db.collection('profiles').doc(id).set(newProfile), 15000);
-    /* onAuthStateChanged session set karega aur data load karega */
+      /* Naam sign-in hone ke baad hi check ho sakta hai (Firestore Rules
+         mein profiles read sirf logged-in user ke liye allowed hai) —
+         isliye yeh check auth account banne ke turant baad, profile
+         Firestore mein save hone se PEHLE karte hain. Agar naam pehle se
+         kisi ka hai, to abhi-abhi bana auth account bhi turant delete
+         kar dete hain, taaki koi orphan/adhoora account na bache. */
+      const nameTaken = await nameAlreadyTaken(f.name.trim(), id);
+      if (nameTaken) {
+        state.authError = 'Yeh naam pehle se kisi aur (student ya admin) ke profile mein use ho raha hai. Kripya thoda alag naam try karein (jaise surname/middle name add karke).';
+        try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
+        state.authBusy = false;
+        return render();
+      }
+
+      const photoUrl = await withTimeout(uploadDataUrl(f.photo, 'profile-photos', cred.user.uid), 20000).catch(() => '');
+      const newProfile = isAdmin
+        ? { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:'Staff', section:'', subject:f.subject.trim(), role:'admin', following:[], followers:[], blocked:[], verified:true, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' }
+        : { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:studentClass, section:studentSection, passYear:studentPassYear, subject:f.subject.trim(), role:'student', following:[], followers:[], blocked:[], verified:false, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' };
+      await withTimeout(db.collection('profiles').doc(id).set(newProfile), 15000);
+      /* onAuthStateChanged session set karega aur data load karega */
+    } catch(innerErr){
+      /* Account bana chuka tha lekin profile complete hone se pehle kuch
+         fail ho gaya (jaise permission-denied ka timing-glitch) — is
+         adhoore account ko turant delete kar dete hain, taaki yeh ID
+         card kabhi "stuck" na ho aur student turant dobara try kar sake. */
+      try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
+      throw innerErr;
+    }
   } catch(e){
     state.authError = firebaseErrorMessage(e);
   }
