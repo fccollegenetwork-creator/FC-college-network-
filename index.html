@@ -544,6 +544,20 @@ async function fetchProfiles(){
     if (state.session && mine && mine.role === 'student'){
       state.timeLimitReached = isTimeLimitReached();
     }
+    /* Admin ko ek chhoti si 'admins/{uid}' marker doc ke through register
+       karte hain (sirf ek baar, khud-ba-khud) — isse Firestore Rules
+       admin ko purane/orphan student profiles delete karne ki ijaazat
+       de paati hain (jaise koi ID whitelist se hatakar dobara kisi
+       naye student ko di jaaye), bina kisi Cloud Function ke. Yeh sirf
+       ek marker hai, koi naya UI/feature nahi — isliye purani website
+       waisi hi rehti hai. */
+    if (state.session && mine && mine.role === 'admin' && !state.adminRegistered){
+      state.adminRegistered = true;
+      const myUid = auth.currentUser && auth.currentUser.uid;
+      if (myUid){
+        try { await db.collection('admins').doc(myUid).set({ uid: myUid }, { merge: true }); } catch(e){}
+      }
+    }
     render();
   } catch(e){}
 }
@@ -1172,6 +1186,7 @@ const state = {
   authBusy: false,
   validIds: {},
   validIdsLoaded: false,
+  adminRegistered: false,
   adminAddId: '',
   adminAddClass: '',
   adminAddSection: 'A',
@@ -2455,6 +2470,23 @@ async function handleCreate(){
         return render();
       }
 
+      /* Agar isi ID card number ki koi PURANI profile document pehle se
+         Firestore mein maujood hai (jaise koi purana student jiska ID
+         admin ne whitelist se hata diya tha lekin uski profile clean
+         hone se pehle hi kisi ne dobara register karne ki koshish ki),
+         to abhi hi rok dete hain — warna aage wala .set() Firestore ko
+         "create" ki jagah "update" lagega (kyunki doc pehle se hai) aur
+         confusing "Firestore permission error" dega. Yahan clear
+         Hindi/Urdu message dete hain taaki student admin se sampark
+         kar sake. */
+      const existingProfile = await withTimeout(db.collection('profiles').doc(id).get(), 15000);
+      if (existingProfile.exists) {
+        state.authError = 'Is ID card number ka ek purana profile record pehle se maujood hai. Kripya school admin se sampark karein taaki wo purana record clear karke aapko dobara register karwa sakein.';
+        try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
+        state.authBusy = false;
+        return render();
+      }
+
       const photoUrl = await withTimeout(uploadDataUrl(f.photo, 'profile-photos', cred.user.uid), 20000).catch(() => '');
       const newProfile = isAdmin
         ? { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:'Staff', section:'', subject:f.subject.trim(), role:'admin', following:[], followers:[], blocked:[], verified:true, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' }
@@ -2748,6 +2780,22 @@ async function handleAdminRemoveId(id){
   try {
     await db.collection('validIds').doc(id).delete();
     delete state.validIds[id];
+  } catch(e){}
+  /* Agar is ID card se pehle koi student account ban chuka tha, to uski
+     'profiles' document bhi yahin clean kar dete hain — warna wo purani
+     document Firestore mein reh jaati aur is ID number ko future mein
+     kisi naye student ko dobara diya jaaye to uska signup "Firestore
+     permission error" (permission-denied) de kar fail ho jaata, kyunki
+     Firestore ek maujooda document par set() ko "create" nahi "update"
+     maanta hai aur update rule alag uid se allow nahi karta. Best-effort
+     hai (agar profile nahi mili ya delete rule kisi wajah se fail ho,
+     to bhi whitelist se hataana already ho chuka hoga). */
+  try {
+    const staleProfile = await db.collection('profiles').doc(id).get();
+    if (staleProfile.exists && staleProfile.data().role !== 'admin'){
+      await db.collection('profiles').doc(id).delete();
+      delete state.profiles[id];
+    }
   } catch(e){}
   render();
 }
