@@ -436,7 +436,7 @@ function nameChangeDaysLeft(profile){
    dekha jaata hai — school-scale app hai isliye yeh chhota-sa extra
    read theek hai (fetchProfiles bhi waise hi poori collection fetch
    karta hai). */
-async function nameAlreadyTaken(name, excludeIdCard){
+async function nameAlreadyTaken(name, excludeIdCard, strict){
   const target = (name || '').trim().toLowerCase();
   if (!target) return false;
   try {
@@ -449,7 +449,8 @@ async function nameAlreadyTaken(name, excludeIdCard){
     });
     return taken;
   } catch(e){
-    return false; // check fail ho jaaye to signup/change ko block nahi karte
+    if (strict) throw e; // signup ke waqt: error chhupate nahi, aage propagate karte hain (diagnostics)
+    return false; // baaki jagah: check fail ho jaaye to block nahi karte
   }
 }
 
@@ -485,9 +486,27 @@ function firebaseErrorMessage(err){
     'auth/configuration-not-found': 'Firebase Console mein Authentication set up nahi hai. Authentication → Get Started → Sign-in method mein Email/Password enable karein.',
     'timeout': 'Internet slow hai ya server se response nahi mil raha. Connection check karke dobara try karein.',
   };
-  if (map[code]) return map[code];
+  /* Diagnostic step-tag — jab kisi Firestore call ko withStep() se tag
+     kiya gaya ho, uska naam error message ke aakhir mein dikha dete hain
+     (jaise "[step: user-cap-check]"). Isse pata chal jaata hai ki EXACTLY
+     kaunsi request deny hui, generic "Firestore permission error" ki
+     jagah — debugging ke liye zaroori, feature/UI par koi asar nahi. */
+  const stepTag = err && err.step ? ` [step: ${err.step}]` : '';
+  if (map[code]) return map[code] + stepTag;
   const detail = code || (err && err.message) || 'unknown';
-  return `Kuch galat ho gaya (${detail}). Dobara try karein.`;
+  return `Kuch galat ho gaya (${detail}). Dobara try karein.${stepTag}`;
+}
+
+/* Kisi Firestore/Auth call ko ek naam ("step") ke saath tag karta hai,
+   taaki agar wo fail ho to error message mein exactly pata chale ki
+   kaunsa step tha — sirf diagnostics ke liye, behaviour nahi badalta. */
+async function withStep(step, fn){
+  try {
+    return await fn();
+  } catch(err){
+    if (err && typeof err === 'object' && !err.step) err.step = step;
+    throw err;
+  }
 }
 
 /* Kabhi-kabhi Firebase call kabhi bhi resolve/reject nahi hoti (bahut slow
@@ -2437,7 +2456,7 @@ async function handleCreate(){
        nahi. */
     let studentClass = '', studentSection = '', studentPassYear = null;
     if (!isAdmin){
-      const validDoc = await withTimeout(db.collection('validIds').doc(id).get(), 15000);
+      const validDoc = await withStep('validIds-read', () => withTimeout(db.collection('validIds').doc(id).get(), 15000));
       if (!validDoc.exists) {
         state.authError = 'Yeh ID card number FFC ki official list mein register nahi hai. School office/admin se apna number confirm karwa kar dobara try karein.';
         state.authBusy = false;
@@ -2455,7 +2474,7 @@ async function handleCreate(){
       }
     }
 
-    const cred = await withTimeout(auth.createUserWithEmailAndPassword(emailForId(id), password), 15000);
+    const cred = await withStep('auth-create', () => withTimeout(auth.createUserWithEmailAndPassword(emailForId(id), password), 15000));
 
     try {
       /* Naya account banne ke turant baad, agla koi bhi Firestore call
@@ -2466,7 +2485,7 @@ async function handleCreate(){
          hi tha) lekin profile kabhi nahi banti, aur wo ID card hamesha ke
          liye atak jaata. Isse rokne ke liye, pehle token ko explicitly
          refresh karke pakka karte hain ki wo Firestore ke liye taiyar hai. */
-      await withTimeout(cred.user.getIdToken(true), 15000);
+      await withStep('token-refresh', () => withTimeout(cred.user.getIdToken(true), 15000));
 
       /* ===== Total user cap check =====
          'profiles' collection sirf logged-in user hi read kar sakta hai
@@ -2477,7 +2496,7 @@ async function handleCreate(){
          karta hai, isliye yeh ek extra read school-scale app ke liye
          theek hai. Limit poori mile to abhi-abhi bana Auth account turant
          delete kar dete hain, taaki koi orphan/adhoora account na bache. */
-      const profilesSnap = await withAuthRetry(() => withTimeout(db.collection('profiles').get(), 15000));
+      const profilesSnap = await withStep('user-cap-check', () => withAuthRetry(() => withTimeout(db.collection('profiles').get(), 15000)));
       if (profilesSnap.size >= MAX_TOTAL_USERS) {
         state.authError = `FFC College Network par register hone ki limit (${MAX_TOTAL_USERS} users) poori ho chuki hai. Naye account is waqt nahi ban sakte — school admin se sampark karein.`;
         try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
@@ -2491,7 +2510,7 @@ async function handleCreate(){
          Firestore mein save hone se PEHLE karte hain. Agar naam pehle se
          kisi ka hai, to abhi-abhi bana auth account bhi turant delete
          kar dete hain, taaki koi orphan/adhoora account na bache. */
-      const nameTaken = await nameAlreadyTaken(f.name.trim(), id);
+      const nameTaken = await withStep('name-check', () => nameAlreadyTaken(f.name.trim(), id, true));
       if (nameTaken) {
         state.authError = 'Yeh naam pehle se kisi aur (student ya admin) ke profile mein use ho raha hai. Kripya thoda alag naam try karein (jaise surname/middle name add karke).';
         try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
@@ -2508,7 +2527,7 @@ async function handleCreate(){
          confusing "Firestore permission error" dega. Yahan clear
          Hindi/Urdu message dete hain taaki student admin se sampark
          kar sake. */
-      const existingProfile = await withAuthRetry(() => withTimeout(db.collection('profiles').doc(id).get(), 15000));
+      const existingProfile = await withStep('existing-profile-check', () => withAuthRetry(() => withTimeout(db.collection('profiles').doc(id).get(), 15000)));
       if (existingProfile.exists) {
         state.authError = 'Is ID card number ka ek purana profile record pehle se maujood hai. Kripya school admin se sampark karein taaki wo purana record clear karke aapko dobara register karwa sakein.';
         try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
@@ -2520,7 +2539,7 @@ async function handleCreate(){
       const newProfile = isAdmin
         ? { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:'Staff', section:'', subject:f.subject.trim(), role:'admin', following:[], followers:[], blocked:[], verified:true, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' }
         : { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:studentClass, section:studentSection, passYear:studentPassYear, subject:f.subject.trim(), role:'student', following:[], followers:[], blocked:[], verified:false, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' };
-      await withAuthRetry(() => withTimeout(db.collection('profiles').doc(id).set(newProfile), 15000));
+      await withStep('profile-create', () => withAuthRetry(() => withTimeout(db.collection('profiles').doc(id).set(newProfile), 15000)));
       /* onAuthStateChanged session set karega aur data load karega */
     } catch(innerErr){
       /* Account bana chuka tha lekin profile complete hone se pehle kuch
