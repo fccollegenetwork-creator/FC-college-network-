@@ -440,7 +440,7 @@ async function nameAlreadyTaken(name, excludeIdCard){
   const target = (name || '').trim().toLowerCase();
   if (!target) return false;
   try {
-    const snap = await db.collection('profiles').get();
+    const snap = await withAuthRetry(() => db.collection('profiles').get());
     let taken = false;
     snap.forEach(d => {
       if (d.id === excludeIdCard) return;
@@ -499,6 +499,35 @@ function withTimeout(promise, ms){
     promise,
     new Promise((_, reject) => setTimeout(() => reject(Object.assign(new Error('timeout'), { code: 'timeout' })), ms))
   ]);
+}
+
+/* Naya Firebase Auth account banne ke TURANT baad, uska login-token
+   Firestore ke internal connection tak pahunchne mein kabhi-kabhi ek
+   pal (kuch sau milliseconds) ki der lag jaati hai — chahe humne
+   getIdToken(true) se token force-refresh bhi kiya ho. Us chhote se
+   gap mein agar koi Firestore call ho jaaye to "permission-denied"
+   aa jaata hai, bilkul rules sahi hone ke bawajood. Yeh helper aisi
+   calls ko khud-ba-khud, thodi der ruk kar (0.6s, 1.2s, ...), fir se
+   try karta hai — sirf 'permission-denied' par retry karta hai, koi
+   aur error ho to turant throw kar deta hai. */
+function withAuthRetry(fn, retries, baseDelayMs){
+  retries = retries || 5;
+  baseDelayMs = baseDelayMs || 600;
+  return new Promise((resolve, reject) => {
+    let attempt = 0;
+    function tryOnce(){
+      attempt++;
+      fn().then(resolve).catch(err => {
+        const code = err && err.code;
+        if (code === 'permission-denied' && attempt < retries){
+          setTimeout(tryOnce, baseDelayMs * attempt);
+        } else {
+          reject(err);
+        }
+      });
+    }
+    tryOnce();
+  });
 }
 
 let unsubChatList = null, unsubChatMsgs = null;
@@ -2448,7 +2477,7 @@ async function handleCreate(){
          karta hai, isliye yeh ek extra read school-scale app ke liye
          theek hai. Limit poori mile to abhi-abhi bana Auth account turant
          delete kar dete hain, taaki koi orphan/adhoora account na bache. */
-      const profilesSnap = await withTimeout(db.collection('profiles').get(), 15000);
+      const profilesSnap = await withAuthRetry(() => withTimeout(db.collection('profiles').get(), 15000));
       if (profilesSnap.size >= MAX_TOTAL_USERS) {
         state.authError = `FFC College Network par register hone ki limit (${MAX_TOTAL_USERS} users) poori ho chuki hai. Naye account is waqt nahi ban sakte — school admin se sampark karein.`;
         try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
@@ -2479,7 +2508,7 @@ async function handleCreate(){
          confusing "Firestore permission error" dega. Yahan clear
          Hindi/Urdu message dete hain taaki student admin se sampark
          kar sake. */
-      const existingProfile = await withTimeout(db.collection('profiles').doc(id).get(), 15000);
+      const existingProfile = await withAuthRetry(() => withTimeout(db.collection('profiles').doc(id).get(), 15000));
       if (existingProfile.exists) {
         state.authError = 'Is ID card number ka ek purana profile record pehle se maujood hai. Kripya school admin se sampark karein taaki wo purana record clear karke aapko dobara register karwa sakein.';
         try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
@@ -2491,7 +2520,7 @@ async function handleCreate(){
       const newProfile = isAdmin
         ? { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:'Staff', section:'', subject:f.subject.trim(), role:'admin', following:[], followers:[], blocked:[], verified:true, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' }
         : { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:studentClass, section:studentSection, passYear:studentPassYear, subject:f.subject.trim(), role:'student', following:[], followers:[], blocked:[], verified:false, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' };
-      await withTimeout(db.collection('profiles').doc(id).set(newProfile), 15000);
+      await withAuthRetry(() => withTimeout(db.collection('profiles').doc(id).set(newProfile), 15000));
       /* onAuthStateChanged session set karega aur data load karega */
     } catch(innerErr){
       /* Account bana chuka tha lekin profile complete hone se pehle kuch
