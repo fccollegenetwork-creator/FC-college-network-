@@ -691,15 +691,21 @@ function subscribeChatList(){
   if (unsubChatList) unsubChatList();
   const myUid = auth.currentUser && auth.currentUser.uid;
   if (!myUid) return;
+  /* Note: yahan Firestore query mein 'orderBy' jaanbujh kar nahi lagaya —
+     'array-contains' filter ke saath 'orderBy' kisi doosre field par lagane
+     ke liye Firestore ko ek composite index chahiye hota hai. Agar wo index
+     Firebase console mein bana hi na ho, to ye query hamesha fail hoti hai
+     aur chat list hamesha khaali dikhti hai (jabki chats/messages khud theek
+     kaam karte hain). Isliye sorting yahan client-side (JS mein) kar rahe
+     hain — koi index zaroori nahi rahta aur list hamesha load hoti hai. */
   unsubChatList = db.collection('chats')
     .where('participantUids', 'array-contains', myUid)
-    .orderBy('lastTime', 'desc')
     .onSnapshot(snap => {
       state.chatList = snap.docs.map(d => {
         const c = d.data();
         const otherId = (c.participants || []).find(x => x !== state.session);
         return { otherId, lastText: c.lastText || '', lastTime: c.lastTime || 0 };
-      });
+      }).sort((a, b) => b.lastTime - a.lastTime);
       if (state.tab === 'chat' && !state.chatWith && !state.viewingProfile) render();
     }, () => { state.chatList = []; });
 }
@@ -1980,13 +1986,18 @@ function renderChatList(){
     return `<div class="chat-empty">Abhi koi conversation nahi hai.<br/>Search se kisi student ko dhoond kar message bhejein.</div>`;
   }
   return state.chatList.map(c => {
+    /* Pehle yahan profile na milne par (naya user, ya cache abhi refresh
+       nahi hua) poori row hi hide ho jaati thi — isliye chat aayi hoti
+       thi par dikhti nahi thi. Ab profile na milne par bhi row dikhaate
+       hain (naam ki jagah ID), taaki koi bhi chat kabhi gayab na ho. */
     const p = state.profiles[c.otherId];
-    if (!p) return '';
+    const displayName = p ? esc(p.name) : esc(c.otherId || '');
+    const avatarInner = p && p.photo ? `<img src="${p.photo}"/>` : svgIcon('user').replace('currentColor','var(--ink-soft)');
     return `
-    <div class="chat-list-row" data-act="open-chat" data-id="${esc(p.idCard)}">
-      <div class="avatar" style="width:44px;height:44px">${p.photo?`<img src="${p.photo}"/>`:svgIcon('user').replace('currentColor','var(--ink-soft)')}</div>
+    <div class="chat-list-row" data-act="open-chat" data-id="${esc(c.otherId)}">
+      <div class="avatar" style="width:44px;height:44px">${avatarInner}</div>
       <div class="chat-list-text">
-        <div class="chat-list-name">${esc(p.name)} ${verifiedBadge(p)}</div>
+        <div class="chat-list-name">${displayName} ${p?verifiedBadge(p):''}</div>
         <div class="chat-list-preview">${esc(c.lastText||'')}</div>
       </div>
       <div class="chat-list-time">${timeAgo(c.lastTime)}</div>
@@ -2269,7 +2280,7 @@ function bindEvents(){
   on('[data-act="tab-home"]', 'click', () => { leaveTools(); state.tab='home'; state.viewingProfile=null; state.chatWith=null; render(); fetchFeed(); });
   on('[data-act="tab-search"]', 'click', () => { leaveTools(); state.tab='search'; state.viewingProfile=null; state.chatWith=null; render(); fetchProfiles(); });
   on('[data-act="tab-tools"]', 'click', () => { state.tab='tools'; state.viewingProfile=null; state.chatWith=null; render(); });
-  on('[data-act="tab-chat"]', 'click', () => { leaveTools(); state.tab='chat'; state.viewingProfile=null; state.chatWith=null; render(); subscribeChatList(); });
+  on('[data-act="tab-chat"]', 'click', () => { leaveTools(); state.tab='chat'; state.viewingProfile=null; state.chatWith=null; render(); subscribeChatList(); fetchProfiles(); });
   on('[data-act="tab-profile"]', 'click', () => { leaveTools(); state.tab='profile'; state.viewingProfile=null; state.chatWith=null; render(); });
   on('[data-act="tab-admin"]', 'click', () => { leaveTools(); state.tab='admin'; state.viewingProfile=null; state.chatWith=null; render(); fetchValidIds(); });
 
