@@ -1272,6 +1272,7 @@ const state = {
   chatList: [],
   chatUploading: false,
   chatError: '',
+  chatSearchQuery: '',
 
   /* ---- Tools tab state ----
      Ye sab sirf is browser ki localStorage mein rehta hai, Firestore ko
@@ -1982,10 +1983,24 @@ function renderProfileView(idCard){
 }
 
 function renderChatList(){
+  const q = (state.chatSearchQuery || '').trim().toLowerCase();
+  const searchBar = `<div class="search-bar">${svgIcon('search')}<input id="chat-search-input" placeholder="Chat mein naam se search karein…" value="${esc(state.chatSearchQuery)}" /></div>`;
+
   if (!state.chatList.length){
-    return `<div class="chat-empty">Abhi koi conversation nahi hai.<br/>Search se kisi student ko dhoond kar message bhejein.</div>`;
+    return `${searchBar}<div class="chat-empty">Abhi koi conversation nahi hai.<br/>Search se kisi student ko dhoond kar message bhejein.</div>`;
   }
-  return state.chatList.map(c => {
+
+  const filtered = !q ? state.chatList : state.chatList.filter(c => {
+    const p = state.profiles[c.otherId];
+    const name = p ? p.name : (c.otherId || '');
+    return name.toLowerCase().includes(q);
+  });
+
+  if (!filtered.length){
+    return `${searchBar}<div class="chat-empty">Koi chat nahi mili.</div>`;
+  }
+
+  const rows = filtered.map(c => {
     /* Pehle yahan profile na milne par (naya user, ya cache abhi refresh
        nahi hua) poori row hi hide ho jaati thi — isliye chat aayi hoti
        thi par dikhti nahi thi. Ab profile na milne par bhi row dikhaate
@@ -1994,15 +2009,18 @@ function renderChatList(){
     const displayName = p ? esc(p.name) : esc(c.otherId || '');
     const avatarInner = p && p.photo ? `<img src="${p.photo}"/>` : svgIcon('user').replace('currentColor','var(--ink-soft)');
     return `
-    <div class="chat-list-row" data-act="open-chat" data-id="${esc(c.otherId)}">
-      <div class="avatar" style="width:44px;height:44px">${avatarInner}</div>
-      <div class="chat-list-text">
+    <div class="chat-list-row">
+      <div class="avatar" style="width:44px;height:44px;cursor:pointer" data-act="open-chat" data-id="${esc(c.otherId)}">${avatarInner}</div>
+      <div class="chat-list-text" data-act="open-chat" data-id="${esc(c.otherId)}" style="cursor:pointer">
         <div class="chat-list-name">${displayName} ${p?verifiedBadge(p):''}</div>
         <div class="chat-list-preview">${esc(c.lastText||'')}</div>
       </div>
       <div class="chat-list-time">${timeAgo(c.lastTime)}</div>
+      <button type="button" class="btn-ghost" data-act="delete-chat" data-id="${esc(c.otherId)}" style="padding:6px 8px;margin-left:6px">${svgIcon('trash')}</button>
     </div>`;
   }).join('');
+
+  return `${searchBar}${rows}`;
 }
 
 function renderChatThread(contactId){
@@ -2320,6 +2338,8 @@ function bindEvents(){
     onAll('[data-act="filter"]', 'click', e => { state.sectionFilter = e.currentTarget.dataset.val; render(); });
     onAll('[data-act="like"]', 'click', e => handleLike(e.currentTarget.dataset.id));
     onAll('[data-act="delete-post"]', 'click', e => handleDeletePost(e.currentTarget.dataset.id));
+    onAll('[data-act="delete-chat"]', 'click', e => { e.stopPropagation(); handleDeleteChat(e.currentTarget.dataset.id); });
+    on('#chat-search-input', 'input', e => { state.chatSearchQuery = e.target.value; render(); });
     onAll('[data-act="open-profile"]', 'click', e => { state.viewingProfile = e.currentTarget.dataset.id; render(); });
   } else if (state.tab === 'search'){
     on('#search-input', 'input', e => { state.searchQuery = e.target.value; render(); });
@@ -2692,6 +2712,25 @@ async function handleDeletePost(postId){
   } catch(e){
     state.feed.splice(idx, 0, post);
     render();
+  }
+}
+
+async function handleDeleteChat(otherId){
+  if (!otherId) return;
+  if (!confirm('Ye poori chat delete karna chahte hain?')) return;
+  const idx = state.chatList.findIndex(c => c.otherId === otherId);
+  const removed = idx > -1 ? state.chatList[idx] : null;
+  if (idx > -1) state.chatList.splice(idx, 1);
+  render();
+  try {
+    const chatId = chatKey(state.session, otherId);
+    const msgsSnap = await db.collection('chats').doc(chatId).collection('messages').get();
+    const batch = db.batch();
+    msgsSnap.docs.forEach(d => batch.delete(d.ref));
+    batch.delete(db.collection('chats').doc(chatId));
+    await batch.commit();
+  } catch(e){
+    if (removed) { state.chatList.splice(idx, 0, removed); render(); }
   }
 }
 
