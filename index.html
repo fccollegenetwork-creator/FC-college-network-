@@ -2338,8 +2338,6 @@ function bindEvents(){
     onAll('[data-act="filter"]', 'click', e => { state.sectionFilter = e.currentTarget.dataset.val; render(); });
     onAll('[data-act="like"]', 'click', e => handleLike(e.currentTarget.dataset.id));
     onAll('[data-act="delete-post"]', 'click', e => handleDeletePost(e.currentTarget.dataset.id));
-    onAll('[data-act="delete-chat"]', 'click', e => { e.stopPropagation(); handleDeleteChat(e.currentTarget.dataset.id); });
-    on('#chat-search-input', 'input', e => { state.chatSearchQuery = e.target.value; render(); });
     onAll('[data-act="open-profile"]', 'click', e => { state.viewingProfile = e.currentTarget.dataset.id; render(); });
   } else if (state.tab === 'search'){
     on('#search-input', 'input', e => { state.searchQuery = e.target.value; render(); });
@@ -2427,6 +2425,8 @@ function bindEvents(){
     on('[data-act="lap-stopwatch"]', 'click', lapStopwatch);
   } else if (state.tab === 'chat'){
     onAll('[data-act="open-chat"]', 'click', e => openChat(e.currentTarget.dataset.id));
+    onAll('[data-act="delete-chat"]', 'click', e => { e.stopPropagation(); handleDeleteChat(e.currentTarget.dataset.id); });
+    on('#chat-search-input', 'input', e => { state.chatSearchQuery = e.target.value; render(); });
   } else if (state.tab === 'admin'){
     on('#admin-add-id', 'input', e => state.adminAddId = e.target.value);
     on('#admin-add-class', 'change', e => state.adminAddClass = e.target.value);
