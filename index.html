@@ -197,6 +197,9 @@
   /* ---- follow / block buttons ---- */
   .follow-btn{font-size:12px;font-weight:500;padding:8px 14px;border-radius:8px;background:var(--navy);color:#fff;display:flex;align-items:center;gap:5px;flex-shrink:0;}
   .follow-btn.following{background:var(--paper-deep);color:var(--ink);}
+  .follow-btn.requested{background:var(--paper-deep);color:var(--ink-soft);}
+  .request-row-actions{display:flex;gap:8px;flex-shrink:0;}
+  .request-row-actions .follow-btn, .request-row-actions .block-btn{padding:8px 12px;}
   .msg-btn{font-size:12px;font-weight:500;padding:8px 12px;border-radius:8px;background:var(--paper-deep);color:var(--ink);display:flex;align-items:center;gap:5px;flex-shrink:0;}
   .block-btn{font-size:12px;font-weight:500;padding:8px 12px;border-radius:8px;background:#F7E9E9;color:var(--maroon);display:flex;align-items:center;gap:5px;flex-shrink:0;}
 
@@ -1609,7 +1612,10 @@ function renderAppShell(){
         <span style="position:relative">${svgIcon('chatIcon')}${unreadChatCount() > 0 ? `<span class="nav-badge">${unreadChatCount() > 9 ? '9+' : unreadChatCount()}</span>` : ''}</span>
         <span>Chat</span>
       </button>
-      <button type="button" class="nav-btn ${!overlay && state.tab==='profile'?'active':''}" data-act="tab-profile">${svgIcon('user')}<span>Profile</span></button>
+      <button type="button" class="nav-btn ${!overlay && state.tab==='profile'?'active':''}" data-act="tab-profile">
+        <span style="position:relative">${svgIcon('user')}${(profile.followRequests||[]).length > 0 ? `<span class="nav-badge">${profile.followRequests.length > 9 ? '9+' : profile.followRequests.length}</span>` : ''}</span>
+        <span>Profile</span>
+      </button>
       ${profile.role === 'admin' ? `<button type="button" class="nav-btn ${!overlay && state.tab==='admin'?'active':''}" data-act="tab-admin">${svgIcon('shield')}<span>Admin</span></button>` : ''}
     </nav>
   </div>`;
@@ -1628,6 +1634,7 @@ function renderSearch(){
     ? `<div class="empty-state">Koi student nahi mila.</div>`
     : results.map(p => {
         const isFollowing = (me.following||[]).includes(p.idCard);
+        const isRequested = !isFollowing && (p.followRequests||[]).includes(state.session);
         return `
         <div class="user-row">
           <div class="avatar" style="width:44px;height:44px;cursor:pointer" data-act="open-profile" data-id="${esc(p.idCard)}">${p.photo?`<img src="${p.photo}"/>`:svgIcon('user').replace('currentColor','var(--ink-soft)')}</div>
@@ -1635,8 +1642,8 @@ function renderSearch(){
             <div class="user-row-name">${esc(p.name)} ${verifiedBadge(p)}</div>
             <div class="user-row-meta">Class ${esc(p.class)} · Sec ${esc(p.section)}${p.subject?' · '+esc(p.subject):''}</div>
           </div>
-          <button type="button" class="follow-btn ${isFollowing?'following':''}" data-act="toggle-follow" data-id="${esc(p.idCard)}">
-            ${isFollowing ? svgIcon('userCheck')+' Following' : svgIcon('userPlus')+' Follow'}
+          <button type="button" class="follow-btn ${isFollowing?'following':(isRequested?'requested':'')}" data-act="toggle-follow" data-id="${esc(p.idCard)}">
+            ${isFollowing ? svgIcon('userCheck')+' Following' : (isRequested ? svgIcon('userCheck')+' Requested' : svgIcon('userPlus')+' Follow')}
           </button>
         </div>`;
       }).join('');
@@ -2031,9 +2038,35 @@ function renderProfileView(idCard){
   }
   const me = state.profiles[state.session];
   const isFollowing = (me.following||[]).includes(p.idCard);
+  const isRequested = !isFollowing && (p.followRequests||[]).includes(state.session);
   const isBlocked = (me.blocked||[]).includes(p.idCard);
   const blockedMe = (p.blocked||[]).includes(state.session);
-  const myPostsCount = state.feed.filter(post => post.idCard === p.idCard).length;
+  const userPosts = state.feed.filter(post => post.idCard === p.idCard);
+  const myPostsCount = userPosts.length;
+  const isPrivateLocked = p.privateAccount && !isFollowing;
+
+  const postsHtml = isPrivateLocked
+    ? `<div class="empty-state">${svgIcon('shield')}<br/>Yeh account private hai. Posts dekhne ke liye pehle follow karein.</div>`
+    : (userPosts.length === 0
+        ? `<div class="empty-state">Abhi koi post nahi hai.</div>`
+        : userPosts.map(post => {
+            const liked = post.likes.includes(state.session);
+            return `
+            <div class="post-card">
+              <div class="post-head">
+                <div class="avatar" style="width:34px;height:34px">${p.photo ? `<img src="${p.photo}"/>` : svgIcon('user').replace('currentColor','var(--ink-soft)')}</div>
+                <div class="post-headtext">
+                  <div class="post-name">${esc(p.name)} ${verifiedBadge(p)}</div>
+                  <div class="post-meta">Class ${esc(post.class)} · Sec ${esc(post.section)} · ${timeAgo(post.time)}</div>
+                </div>
+              </div>
+              ${post.text ? `<div class="post-text">${esc(post.text)}</div>` : ''}
+              ${post.image ? imgHtml(post.image, 'post-image', 'Post image') : ''}
+              <button type="button" class="like-btn ${liked?'liked':''}" data-act="like" data-id="${post.id}">
+                ${svgIcon('heart').replace('{fill}', liked ? 'currentColor' : 'none')} ${post.likes.length}
+              </button>
+            </div>`;
+          }).join(''));
 
   return `
     <div class="back-row">
@@ -2052,13 +2085,14 @@ function renderProfileView(idCard){
       </div>
       ${blockedMe ? `<div class="blocked-note">Yeh student aapse contact nahi kar sakta.</div>` : `
       <div class="action-row">
-        <button type="button" class="follow-btn ${isFollowing?'following':''}" data-act="toggle-follow" data-id="${esc(p.idCard)}">
-          ${isFollowing ? svgIcon('userCheck')+' Following' : svgIcon('userPlus')+' Follow'}
+        <button type="button" class="follow-btn ${isFollowing?'following':(isRequested?'requested':'')}" data-act="toggle-follow" data-id="${esc(p.idCard)}">
+          ${isFollowing ? svgIcon('userCheck')+' Following' : (isRequested ? svgIcon('userCheck')+' Requested' : svgIcon('userPlus')+' Follow')}
         </button>
         <button type="button" class="msg-btn" data-act="open-chat" data-id="${esc(p.idCard)}">${svgIcon('chatIcon')} Message</button>
         <button type="button" class="block-btn" data-act="toggle-block" data-id="${esc(p.idCard)}">${svgIcon('shield')} ${isBlocked?'Unblock':'Block'}</button>
       </div>`}
     </div>
+    ${blockedMe ? '' : `<div style="margin-top:14px">${postsHtml}</div>`}
   `;
 }
 
@@ -2153,7 +2187,16 @@ function renderChatThread(contactId){
 function renderHome(){
   const profile = state.profiles[state.session];
   const c = state.composer;
-  const visible = state.feed.filter(p => state.sectionFilter === 'all' || p.section === state.sectionFilter);
+  const visible = state.feed.filter(p => {
+    if (state.sectionFilter !== 'all' && p.section !== state.sectionFilter) return false;
+    /* Private account: apne posts hamesha khud ko dikhte hain, doosron
+       ke posts sirf tabhi dikhte hain jab poster private na ho, ya
+       poster ko follow kiya hua ho. */
+    if (p.idCard === state.session) return true;
+    const posterProfile = state.profiles[p.idCard];
+    if (posterProfile && posterProfile.privateAccount && !(posterProfile.followers||[]).includes(state.session)) return false;
+    return true;
+  });
 
   const posts = visible.length === 0
     ? `<div class="empty-state">Abhi koi post nahi hai. Sabse pehle share karein!</div>`
@@ -2210,8 +2253,27 @@ function renderProfile(){
   if (!state.profileEdit) state.profileEdit = { name: profile.name, photo: profile.photo };
   const e = state.profileEdit;
 
+  const pendingRequests = (profile.followRequests || []).map(id => state.profiles[id]).filter(Boolean);
+  const followRequestsHtml = pendingRequests.length === 0 ? '' : `
+    <div class="card" style="margin-bottom:14px">
+      <div class="profile-note">Follow requests (${pendingRequests.length})</div>
+      ${pendingRequests.map(r => `
+        <div class="user-row">
+          <div class="avatar" style="width:44px;height:44px">${r.photo?`<img src="${r.photo}"/>`:svgIcon('user').replace('currentColor','var(--ink-soft)')}</div>
+          <div class="user-row-info">
+            <div class="user-row-name">${esc(r.name)} ${verifiedBadge(r)}</div>
+            <div class="user-row-meta">Class ${esc(r.class)} · Sec ${esc(r.section)}</div>
+          </div>
+          <div class="request-row-actions">
+            <button type="button" class="follow-btn" data-act="accept-follow-request" data-id="${esc(r.idCard)}">${svgIcon('check')} Accept</button>
+            <button type="button" class="block-btn" data-act="decline-follow-request" data-id="${esc(r.idCard)}">${svgIcon('x')} Decline</button>
+          </div>
+        </div>`).join('')}
+    </div>`;
+
   return `
     <div class="profile-card-wrap">${idCardHTML({ ...profile, name: e.name, photo: e.photo, verified: profile.verified }, 'full')}</div>
+    ${followRequestsHtml}
     <div class="card">
       <div class="profile-note">Profile edit karein — sirf naam aur photo badal sakte hain</div>
       <div class="photo-row" style="margin-bottom:16px">
@@ -2255,6 +2317,16 @@ function renderProfile(){
         </div>
         <label class="switch">
           <input type="checkbox" id="hide-online-toggle" ${profile.hideOnlineStatus ? 'checked' : ''} />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+      <div class="settings-row" style="padding:14px;border-top:1px solid var(--paper-deep)">
+        <div>
+          <div class="settings-row-title">Private account</div>
+          <div class="settings-row-desc">On karne par sirf aapke followers hi aapke posts dekh sakenge — baaki students ko na home feed mein na aapki profile par koi post dikhega.</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="private-account-toggle" ${profile.privateAccount ? 'checked' : ''} />
           <span class="switch-track"></span>
         </label>
       </div>
@@ -2579,8 +2651,11 @@ function bindEvents(){
     on('[data-act="admin-bulk-add"]', 'click', handleAdminBulkAdd);
     onAll('[data-act="remove-valid-id"]', 'click', e => handleAdminRemoveId(e.currentTarget.dataset.id));
   } else {
+    onAll('[data-act="accept-follow-request"]', 'click', e => handleAcceptFollowRequest(e.currentTarget.dataset.id));
+    onAll('[data-act="decline-follow-request"]', 'click', e => handleDeclineFollowRequest(e.currentTarget.dataset.id));
     on('#profile-name', 'input', e => state.profileEdit.name = e.target.value);
     on('#hide-online-toggle', 'change', e => handleToggleHideOnline(e.target.checked));
+    on('#private-account-toggle', 'change', e => handleTogglePrivateAccount(e.target.checked));
     on('#hide-preview-toggle', 'change', e => { state.hidePreview = e.target.checked; localStorage.setItem('fc_hide_preview', e.target.checked ? '1' : '0'); render(); });
     on('#data-saver-toggle', 'change', e => { state.dataSaver = e.target.checked; localStorage.setItem('fc_data_saver', e.target.checked ? '1' : '0'); render(); });
     on('#font-size-select', 'change', e => { state.fontSize = e.target.value; localStorage.setItem('fc_font_size', e.target.value); applyFontSize(); render(); });
@@ -2725,8 +2800,8 @@ async function handleCreate(){
 
       const photoUrl = await withTimeout(uploadDataUrl(f.photo, 'profile-photos', cred.user.uid), 20000).catch(() => '');
       const newProfile = isAdmin
-        ? { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:'Staff', section:'', subject:f.subject.trim(), role:'admin', following:[], followers:[], blocked:[], verified:true, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' }
-        : { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:studentClass, section:studentSection, passYear:studentPassYear, subject:f.subject.trim(), role:'student', following:[], followers:[], blocked:[], verified:false, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' };
+        ? { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:'Staff', section:'', subject:f.subject.trim(), role:'admin', following:[], followers:[], blocked:[], followRequests:[], verified:true, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' }
+        : { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:studentClass, section:studentSection, passYear:studentPassYear, subject:f.subject.trim(), role:'student', following:[], followers:[], blocked:[], followRequests:[], verified:false, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' };
       /* Admin account ke liye: asli passcode-check ab Firestore Rules ke
          andar, server par hota hai (adminCodeMatches()) — client wala
          upar ka check (line ~2632) sirf turant UX feedback ke liye hai.
@@ -2971,6 +3046,23 @@ async function handleToggleFollow(targetId){
   const target = state.profiles[targetId];
   if (!me || !target) return;
   const nowFollowing = (me.following || []).includes(targetId);
+
+  /* Private account: seedha follow nahi hota — pehle ek "follow request"
+     jaati hai, jo account ka owner accept/decline karega (jaise Instagram). */
+  if (!nowFollowing && target.privateAccount){
+    const alreadyRequested = (target.followRequests || []).includes(state.session);
+    target.followRequests = alreadyRequested
+      ? (target.followRequests || []).filter(x => x !== state.session)
+      : [...(target.followRequests || []), state.session];
+    render();
+    try {
+      await db.collection('profiles').doc(targetId).update({
+        followRequests: alreadyRequested ? firebase.firestore.FieldValue.arrayRemove(state.session) : firebase.firestore.FieldValue.arrayUnion(state.session)
+      });
+    } catch(e){}
+    return;
+  }
+
   me.following = nowFollowing ? (me.following || []).filter(x => x !== targetId) : [...(me.following || []), targetId];
   target.followers = nowFollowing ? (target.followers || []).filter(x => x !== state.session) : [...(target.followers || []), state.session];
   render();
@@ -2984,6 +3076,37 @@ async function handleToggleFollow(targetId){
   } catch(e){}
 }
 
+async function handleAcceptFollowRequest(requesterId){
+  const me = state.profiles[state.session];
+  const requester = state.profiles[requesterId];
+  if (!me || !requester) return;
+  me.followRequests = (me.followRequests || []).filter(x => x !== requesterId);
+  me.followers = (me.followers || []).includes(requesterId) ? me.followers : [...(me.followers || []), requesterId];
+  requester.following = (requester.following || []).includes(state.session) ? requester.following : [...(requester.following || []), state.session];
+  render();
+  try {
+    await db.collection('profiles').doc(state.session).update({
+      followRequests: firebase.firestore.FieldValue.arrayRemove(requesterId),
+      followers: firebase.firestore.FieldValue.arrayUnion(requesterId)
+    });
+    await db.collection('profiles').doc(requesterId).update({
+      following: firebase.firestore.FieldValue.arrayUnion(state.session)
+    });
+  } catch(e){}
+}
+
+async function handleDeclineFollowRequest(requesterId){
+  const me = state.profiles[state.session];
+  if (!me) return;
+  me.followRequests = (me.followRequests || []).filter(x => x !== requesterId);
+  render();
+  try {
+    await db.collection('profiles').doc(state.session).update({
+      followRequests: firebase.firestore.FieldValue.arrayRemove(requesterId)
+    });
+  } catch(e){}
+}
+
 async function handleToggleHideOnline(hide){
   const profile = state.profiles[state.session];
   if (!profile) return;
@@ -2991,6 +3114,16 @@ async function handleToggleHideOnline(hide){
   render();
   try {
     await db.collection('profiles').doc(state.session).update({ hideOnlineStatus: hide });
+  } catch(e){}
+}
+
+async function handleTogglePrivateAccount(isPrivate){
+  const profile = state.profiles[state.session];
+  if (!profile) return;
+  profile.privateAccount = isPrivate;
+  render();
+  try {
+    await db.collection('profiles').doc(state.session).update({ privateAccount: isPrivate });
   } catch(e){}
 }
 
