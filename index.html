@@ -26,26 +26,36 @@
      aur ye choice sirf is browser ki "local memory" (localStorage) mein
      save hoti hai — Firebase se koi lena dena nahi, isliye 0% extra load. */
   body.dark-theme{
-    --navy:#3A5A9C;
-    --navy-deep:#0B1220;
-    --marigold:#E8A33D;
-    --maroon:#D97878;
+    --navy:#4C72C4;
+    --navy-deep:#0A0F1C;
+    --marigold:#E3A94A;
+    --maroon:#E08A8A;
     --sage:#7FBF93;
-    --paper:#14181F;
-    --paper-deep:#1D2330;
-    --ink:#E9EAEF;
-    --ink-soft:#9AA2B5;
+    --paper:#12151C;
+    --paper-deep:#1B1F29;
+    --ink:#EDEEF2;
+    --ink-soft:#9BA3B4;
   }
   body.dark-theme .card, body.dark-theme .post-card, body.dark-theme .field input,
   body.dark-theme .field select, body.dark-theme .field textarea,
-  body.dark-theme .chip, body.dark-theme .tool-card, body.dark-theme .idcard-qr-box{
+  body.dark-theme .chip, body.dark-theme .tool-card, body.dark-theme .idcard-qr-box,
+  body.dark-theme .role-toggle button, body.dark-theme .search-bar,
+  body.dark-theme .user-row, body.dark-theme .chat-list-row,
+  body.dark-theme .chat-bubble-del, body.dark-theme .chat-attach-btn{
     background:var(--paper-deep);
   }
+  body.dark-theme .role-toggle button{border-color:var(--paper-deep);}
+  body.dark-theme .role-toggle button.active{border-color:var(--navy);background:var(--navy);}
   body.dark-theme header.topbar{background:rgba(20,24,31,.9);}
   body.dark-theme nav.bottombar{background:var(--paper-deep);}
+  body.dark-theme .idcard-qr-box svg, body.dark-theme .idcard-qr-box canvas, body.dark-theme .idcard-qr-box img{
+    background:#fff;border-radius:8px;
+  }
   *{box-sizing:border-box;}
   html{overscroll-behavior-y: contain;}
   body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;overscroll-behavior-y: contain;transition:background .2s,color .2s;}
+  body.font-small #root{zoom:0.88;}
+  body.font-large #root{zoom:1.15;}
   button{font-family:inherit;cursor:pointer;border:none;background:none;}
   input,select,textarea{font-family:inherit;font-size:14px;}
   img{display:block;}
@@ -128,6 +138,8 @@
   .nav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;flex:1;color:var(--ink-soft);}
   .nav-btn.active{color:var(--navy);}
   .nav-btn span{font-size:10px;font-weight:500;}
+  .nav-badge{position:absolute;top:-6px;right:-8px;background:var(--maroon,#b3261e);color:#fff;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1;}
+  .unread-dot{width:9px;height:9px;border-radius:50%;background:var(--maroon,#b3261e);flex-shrink:0;}
 
   /* composer + feed */
   .card{border-radius:16px;background:#fff;border:1px solid var(--paper-deep);padding:16px;}
@@ -156,6 +168,8 @@
   .section-pill{font-size:10px;font-weight:500;color:#fff;padding:2px 8px;border-radius:999px;flex-shrink:0;}
   .post-text{font-size:14px;margin-top:10px;white-space:pre-wrap;}
   .post-image{border-radius:10px;margin-top:10px;width:100%;object-fit:cover;max-height:280px;}
+  .data-saver-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--paper-deep);border:1px dashed var(--ink-soft);border-radius:10px;color:var(--ink-soft);font-size:11.5px;cursor:pointer;width:100%;height:120px;margin-top:10px;}
+  .chat-bubble-img.data-saver-placeholder{max-width:180px;height:100px;margin-top:0;}
   .like-btn{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;color:var(--ink-soft);}
   .like-btn.liked{color:var(--maroon);}
 
@@ -213,10 +227,14 @@
   .chat-thread{display:flex;flex-direction:column;height:calc(100vh - 200px);min-height:320px;}
   .chat-thread-head{display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--paper-deep);margin-bottom:12px;}
   .chat-messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px;}
-  .chat-bubble{max-width:75%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.4;}
+  .chat-bubble{max-width:75%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.4;position:relative;}
   .chat-bubble.mine{align-self:flex-end;background:var(--navy);color:#fff;border-bottom-right-radius:4px;}
   .chat-bubble.theirs{align-self:flex-start;background:var(--paper-deep);color:var(--ink);border-bottom-left-radius:4px;}
   .chat-bubble-time{font-size:9px;opacity:.65;margin-top:4px;display:block;}
+  .chat-bubble-del{position:absolute;top:-10px;right:-8px;width:22px;height:22px;border-radius:50%;border:1px solid var(--paper-deep);background:#fff;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;opacity:0;transition:opacity .15s;}
+  .chat-bubble-del svg{width:12px;height:12px;}
+  .chat-bubble.mine:hover .chat-bubble-del,.chat-bubble.mine:focus-within .chat-bubble-del{opacity:1;}
+  @media (hover:none){ .chat-bubble-del{opacity:1;} }
   .chat-input-row{display:flex;gap:8px;margin-top:12px;flex-shrink:0;align-items:center;}
   .chat-input-row input{flex:1;padding:11px 14px;border-radius:999px;border:1px solid var(--paper-deep);outline:none;}
   .chat-attach-btn{flex-shrink:0;width:38px;height:38px;border-radius:50%;border:1px solid var(--paper-deep);background:#fff;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;}
@@ -232,6 +250,19 @@
      Neeche ke saare tools (calculator, timer, countdown, QR, notes)
      purely client-side hain — koi Firestore read/write nahi karte. */
   .theme-toggle-btn{width:34px;height:34px;border-radius:999px;background:var(--paper-deep);color:var(--ink-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .settings-row{display:flex;align-items:center;justify-content:space-between;gap:14px;}
+  .settings-row-title{font-size:13.5px;font-weight:600;}
+  .settings-row-desc{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .settings-toggle-row{width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 14px;background:none;border:none;cursor:pointer;font:inherit;color:var(--ink);}
+  .settings-toggle-left{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--ink-soft);}
+  .settings-chevron{display:flex;transition:transform .15s;color:var(--ink-soft);}
+  .settings-chevron.open{transform:rotate(90deg);}
+  .switch{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;}
+  .switch-track{position:absolute;cursor:pointer;inset:0;background:var(--paper-deep);border-radius:999px;transition:.15s;}
+  .switch-track::before{content:"";position:absolute;height:18px;width:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+  .switch input:checked + .switch-track{background:var(--navy);}
+  .switch input:checked + .switch-track::before{transform:translateX(18px);}
   .quote-card{border-radius:16px;background:linear-gradient(135deg,var(--navy-deep),var(--navy));padding:16px 18px;color:#fff;margin-bottom:16px;}
   .quote-card .quote-text{font-family:'Zilla Slab',serif;font-size:15px;line-height:1.5;}
   .quote-card .quote-tag{font-size:10px;color:var(--marigold);letter-spacing:.1em;margin-bottom:6px;}
@@ -337,11 +368,7 @@ const CLOUDINARY_UPLOAD_PRESET = 'Ffcupload';
    Firestore Rules hain, jo neeche 'validIds' collection ke comments mein
    di gayi hain) — koi bhi jo yeh code jaanta hai admin account bana sakta
    hai, isliye ise sirf trusted staff ke saath share karein. */
-/* NOTE: Admin passcode ab yahan hardcoded NAHI hai. Real check ab
-   Firestore Security Rules ke andar hota hai (config/secrets document se,
-   jo client kabhi seedha padh nahi sakta) — isse GitHub par public code
-   dekh kar bhi koi passcode nahi jaan sakta, aur na hi Firestore ko
-   seedha (browser console se) call karke isse bypass kar sakta hai. */
+const ADMIN_CODE = 'FFC-STAFF-2026';
 
 /* ===== Total user cap (school-scale limit) =====
    Poori website par (student + admin dono milakar) maximum itne hi
@@ -487,7 +514,6 @@ function firebaseErrorMessage(err){
     'auth/unauthorized-domain': 'Yeh website domain Firebase mein authorize nahi hai. Firebase Console → Authentication → Settings → Authorized domains mein isse add karein.',
     'auth/operation-not-allowed': 'Firebase Console mein Email/Password sign-in method enable nahi hai. Authentication → Sign-in method mein ise enable karein.',
     'permission-denied': 'Firestore permission error. Firebase Console → Firestore → Rules check karein.',
-    'admin-code-wrong': 'Galat admin passcode.',
     'auth/configuration-not-found': 'Firebase Console mein Authentication set up nahi hai. Authentication → Get Started → Sign-in method mein Email/Password enable karein.',
     'timeout': 'Internet slow hai ya server se response nahi mil raha. Connection check karke dobara try karein.',
   };
@@ -630,6 +656,16 @@ async function fetchFeed(){
     render();
   } catch(e){}
 }
+/* Online/last-seen ke liye koi naya poll/timer nahi lagaya — sirf jab
+   user login karta hai ya tab wapas visible hota hai, tab apni profile
+   ka 'lastActive' field ek chhoti si update se refresh kar dete hain.
+   Doosre students ka 'lastActive' padhne ke liye bhi koi extra read
+   nahi hoti — wo pehle se chal rahe fetchProfiles() cycle (har 3 min /
+   visibility par) ke saath hi mil jaata hai. */
+async function updateLastActive(){
+  if (!state.session) return;
+  try { await db.collection('profiles').doc(state.session).update({ lastActive: Date.now() }); } catch(e){}
+}
 
 /* School ke official ID card numbers ki whitelist — sirf isi list mein
    maujood number se hi naya student account bana paayega. Signup se
@@ -687,6 +723,7 @@ function handleVisibilityChange(){
   } else {
     fetchProfiles();
     fetchFeed();
+    updateLastActive();
     startBackgroundRefresh();
     startUsageTimer();
   }
@@ -696,16 +733,22 @@ function subscribeChatList(){
   if (unsubChatList) unsubChatList();
   const myUid = auth.currentUser && auth.currentUser.uid;
   if (!myUid) return;
+  /* Note: yahan Firestore query mein 'orderBy' jaanbujh kar nahi lagaya —
+     'array-contains' filter ke saath 'orderBy' kisi doosre field par lagane
+     ke liye Firestore ko ek composite index chahiye hota hai. Agar wo index
+     Firebase console mein bana hi na ho, to ye query hamesha fail hoti hai
+     aur chat list hamesha khaali dikhti hai (jabki chats/messages khud theek
+     kaam karte hain). Isliye sorting yahan client-side (JS mein) kar rahe
+     hain — koi index zaroori nahi rahta aur list hamesha load hoti hai. */
   unsubChatList = db.collection('chats')
     .where('participantUids', 'array-contains', myUid)
-    .orderBy('lastTime', 'desc')
     .onSnapshot(snap => {
       state.chatList = snap.docs.map(d => {
         const c = d.data();
         const otherId = (c.participants || []).find(x => x !== state.session);
-        return { otherId, lastText: c.lastText || '', lastTime: c.lastTime || 0 };
-      });
-      if (state.tab === 'chat' && !state.chatWith && !state.viewingProfile) render();
+        return { otherId, lastText: c.lastText || '', lastTime: c.lastTime || 0, lastFrom: c.lastFrom || '' };
+      }).sort((a, b) => b.lastTime - a.lastTime);
+      render(); /* har tab par bhi call karte hain taaki bottom-nav ka unread badge turant update ho jaaye */
     }, () => { state.chatList = []; });
 }
 function teardownSubscriptions(){
@@ -760,6 +803,7 @@ function svgIcon(name){
     shuffle: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 18h3.5a3 3 0 0 0 2.5-1.3l6-8.4a3 3 0 0 1 2.5-1.3H20"/><path d="m17 3 4 3-4 3"/><path d="M2 6h3.5a3 3 0 0 1 2.5 1.3l1 1.4"/><path d="M14 18h1.5a3 3 0 0 0 2.5-1.3l.5-.7"/><path d="m17 21 4-3-4-3"/></svg>',
     keyboard: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h0M10 10h0M14 10h0M18 10h0M6 14h12"/></svg>',
     stopwatch: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2"/><path d="M9 2h6M12 2v3"/></svg>',
+    gear: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>',
   };
   return icons[name] || '';
 }
@@ -768,6 +812,18 @@ function esc(str){
   const d = document.createElement('div');
   d.innerText = str == null ? '' : str;
   return d.innerHTML;
+}
+
+/* Data-saver mode ON hone par photo turant load nahi hoti — tap karne
+   tak sirf ek chhota placeholder dikhta hai (post images aur chat
+   images dono ke liye). Off hone par ya ek baar tap karne ke baad,
+   normal <img> dikha dete hain. */
+function imgHtml(url, cls, alt){
+  if (!url) return '';
+  if (!state.dataSaver || state.loadedImages.has(url)){
+    return `<img class="${cls}" src="${url}" alt="${alt||''}" />`;
+  }
+  return `<button type="button" class="${cls} data-saver-placeholder" data-act="load-image" data-url="${esc(url)}">${svgIcon('camera')}<span>Photo dekhne ke liye tap karein</span></button>`;
 }
 
 function resizeImage(file, maxDim){
@@ -825,6 +881,13 @@ function timeAgo(ts){
   const h = Math.floor(m / 60);
   if (h < 24) return h + 'h pehle';
   return Math.floor(h / 24) + 'd pehle';
+}
+
+function presenceLabel(profile){
+  if (!profile || !profile.lastActive || profile.hideOnlineStatus) return '';
+  const diffMin = (Date.now() - profile.lastActive) / 60000;
+  if (diffMin < 3) return 'Online';
+  return 'Active ' + timeAgo(profile.lastActive);
 }
 
 /* ID card must be the school's real "S R No." — a plain number only,
@@ -900,6 +963,12 @@ function toggleTheme(){
   document.body.classList.toggle('dark-theme', state.theme === 'dark');
   localStorage.setItem('fc_theme', state.theme); // sirf is device par yaad rakha jaata hai
   render();
+}
+
+function applyFontSize(){
+  document.body.classList.remove('font-small', 'font-large');
+  if (state.fontSize === 'small') document.body.classList.add('font-small');
+  if (state.fontSize === 'large') document.body.classList.add('font-large');
 }
 
 /* GPA/percentage calculator ke teeno mode — sab turant client-side JS
@@ -1260,6 +1329,7 @@ const state = {
   sectionFilter: 'all',
   composer: { text:'', image:'', error:'' },
   profileEdit: null,
+  settingsOpen: false,
   profileNameError: '',
   passwordChange: { current:'', next:'', error:'', busy:false, success:false },
   profileSaved: false,
@@ -1270,13 +1340,18 @@ const state = {
   chatMessages: [],
   chatList: [],
   chatUploading: false,
+  loadedImages: new Set(),
   chatError: '',
+  chatSearchQuery: '',
 
   /* ---- Tools tab state ----
      Ye sab sirf is browser ki localStorage mein rehta hai, Firestore ko
      bilkul touch nahi karta — isliye jitna marzi use karo, koi extra
      load kisi server par nahi jaata. */
   theme: localStorage.getItem('fc_theme') || 'light',
+  hidePreview: localStorage.getItem('fc_hide_preview') === '1',
+  dataSaver: localStorage.getItem('fc_data_saver') === '1',
+  fontSize: localStorage.getItem('fc_font_size') || 'normal',
   toolTab: 'calc',
   calc: { mode: 'percent', obtained: '', total: '', cgpa: '', percentInput: '' },
   timer: { seconds: 25 * 60, running: false, mode: 'focus' },
@@ -1307,6 +1382,7 @@ const state = {
 
 /* pehli baar page khulte hi saved dark-mode preference apply kar dete hain */
 if (state.theme === 'dark') document.body.classList.add('dark-theme');
+applyFontSize();
 
 /* profiles aur feed ab ek-baar fetch (fetchProfiles/fetchFeed) se aate hain,
    har 45s aur relevant tab khulne par refresh hote hain — individual writes
@@ -1529,7 +1605,10 @@ function renderAppShell(){
       <button type="button" class="nav-btn ${!overlay && state.tab==='home'?'active':''}" data-act="tab-home">${svgIcon('home')}<span>Home</span></button>
       <button type="button" class="nav-btn ${!overlay && state.tab==='search'?'active':''}" data-act="tab-search">${svgIcon('search')}<span>Search</span></button>
       <button type="button" class="nav-btn ${!overlay && state.tab==='tools'?'active':''}" data-act="tab-tools">${svgIcon('tools')}<span>Tools</span></button>
-      <button type="button" class="nav-btn ${!state.viewingProfile && state.tab==='chat'?'active':''}" data-act="tab-chat">${svgIcon('chatIcon')}<span>Chat</span></button>
+      <button type="button" class="nav-btn ${!state.viewingProfile && state.tab==='chat'?'active':''}" data-act="tab-chat">
+        <span style="position:relative">${svgIcon('chatIcon')}${unreadChatCount() > 0 ? `<span class="nav-badge">${unreadChatCount() > 9 ? '9+' : unreadChatCount()}</span>` : ''}</span>
+        <span>Chat</span>
+      </button>
       <button type="button" class="nav-btn ${!overlay && state.tab==='profile'?'active':''}" data-act="tab-profile">${svgIcon('user')}<span>Profile</span></button>
       ${profile.role === 'admin' ? `<button type="button" class="nav-btn ${!overlay && state.tab==='admin'?'active':''}" data-act="tab-admin">${svgIcon('shield')}<span>Admin</span></button>` : ''}
     </nav>
@@ -1541,7 +1620,7 @@ function renderSearch(){
   const q = (state.searchQuery || '').trim().toLowerCase();
   const results = Object.values(state.profiles)
     .filter(p => p.idCard !== state.session)
-    .filter(p => !(me.blocked||[]).includes(p.idCard) && !(p.blocked||[]).includes(state.session))
+    .filter(p => !(p.blocked||[]).includes(state.session))
     .filter(p => !q || p.name.toLowerCase().includes(q) || p.idCard.toLowerCase().includes(q) || String(p.class||'').includes(q))
     .sort((a,b)=>a.name.localeCompare(b.name));
 
@@ -1959,7 +2038,10 @@ function renderProfileView(idCard){
   return `
     <div class="back-row">
       <button type="button" class="back-btn" data-act="close-profile">${svgIcon('back')}</button>
-      <div style="font-weight:600;font-size:14px">${esc(p.name)}</div>
+      <div>
+        <div style="font-weight:600;font-size:14px">${esc(p.name)}</div>
+        ${presenceLabel(p) ? `<div style="font-size:11px;color:var(--ink-soft)">${esc(presenceLabel(p))}</div>` : ''}
+      </div>
     </div>
     <div class="profile-card-wrap">${idCardHTML(p, 'full')}</div>
     <div class="card">
@@ -1981,22 +2063,48 @@ function renderProfileView(idCard){
 }
 
 function renderChatList(){
+  const q = (state.chatSearchQuery || '').trim().toLowerCase();
+  const searchBar = `<div class="search-bar">${svgIcon('search')}<input id="chat-search-input" placeholder="Chat mein naam se search karein…" value="${esc(state.chatSearchQuery)}" /></div>`;
+
   if (!state.chatList.length){
-    return `<div class="chat-empty">Abhi koi conversation nahi hai.<br/>Search se kisi student ko dhoond kar message bhejein.</div>`;
+    return `${searchBar}<div class="chat-empty">Abhi koi conversation nahi hai.<br/>Search se kisi student ko dhoond kar message bhejein.</div>`;
   }
-  return state.chatList.map(c => {
+
+  const filtered = !q ? state.chatList : state.chatList.filter(c => {
     const p = state.profiles[c.otherId];
-    if (!p) return '';
+    const name = p ? p.name : (c.otherId || '');
+    return name.toLowerCase().includes(q);
+  });
+
+  if (!filtered.length){
+    return `${searchBar}<div class="chat-empty">Koi chat nahi mili.</div>`;
+  }
+
+  const rows = filtered.map(c => {
+    /* Pehle yahan profile na milne par (naya user, ya cache abhi refresh
+       nahi hua) poori row hi hide ho jaati thi — isliye chat aayi hoti
+       thi par dikhti nahi thi. Ab profile na milne par bhi row dikhaate
+       hain (naam ki jagah ID), taaki koi bhi chat kabhi gayab na ho. */
+    const p = state.profiles[c.otherId];
+    const displayName = p ? esc(p.name) : esc(c.otherId || '');
+    const avatarInner = p && p.photo ? `<img src="${p.photo}"/>` : svgIcon('user').replace('currentColor','var(--ink-soft)');
+    const unread = isChatUnread(c);
     return `
-    <div class="chat-list-row" data-act="open-chat" data-id="${esc(p.idCard)}">
-      <div class="avatar" style="width:44px;height:44px">${p.photo?`<img src="${p.photo}"/>`:svgIcon('user').replace('currentColor','var(--ink-soft)')}</div>
-      <div class="chat-list-text">
-        <div class="chat-list-name">${esc(p.name)} ${verifiedBadge(p)}</div>
-        <div class="chat-list-preview">${esc(c.lastText||'')}</div>
+    <div class="chat-list-row">
+      <div class="avatar" style="width:44px;height:44px;cursor:pointer" data-act="open-chat" data-id="${esc(c.otherId)}">${avatarInner}</div>
+      <div class="chat-list-text" data-act="open-chat" data-id="${esc(c.otherId)}" style="cursor:pointer">
+        <div class="chat-list-name">${displayName} ${p?verifiedBadge(p):''}</div>
+        <div class="chat-list-preview" style="${unread?'font-weight:600;color:var(--ink)':''}">${state.hidePreview ? 'New message' : esc(c.lastText||'')}</div>
       </div>
-      <div class="chat-list-time">${timeAgo(c.lastTime)}</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+        <div class="chat-list-time">${timeAgo(c.lastTime)}</div>
+        ${unread ? `<span class="unread-dot"></span>` : ''}
+      </div>
+      <button type="button" class="btn-ghost" data-act="delete-chat" data-id="${esc(c.otherId)}" style="padding:6px 8px;margin-left:6px">${svgIcon('trash')}</button>
     </div>`;
   }).join('');
+
+  return `${searchBar}${rows}`;
 }
 
 function renderChatThread(contactId){
@@ -2010,13 +2118,13 @@ function renderChatThread(contactId){
     : state.chatMessages.map(m => {
         let inner;
         if (m.attachment && m.attachment.type === 'image'){
-          inner = `<a href="${m.attachment.url}" target="_blank" rel="noopener"><img class="chat-bubble-img" src="${m.attachment.url}" alt="Photo" /></a>`;
+          inner = `<a href="${m.attachment.url}" target="_blank" rel="noopener">${imgHtml(m.attachment.url, 'chat-bubble-img', 'Photo')}</a>`;
         } else if (m.attachment && m.attachment.type === 'pdf'){
           inner = `<a class="chat-file-card" href="${m.attachment.url}" target="_blank" rel="noopener">${svgIcon('filePdf')}<span>${esc(m.attachment.name || 'Document.pdf')}</span></a>`;
         } else {
           inner = esc(m.text);
         }
-        return `<div class="chat-bubble ${m.from===state.session?'mine':'theirs'} ${m.attachment ? 'has-attachment' : ''}">${inner}<span class="chat-bubble-time">${timeAgo(m.time)}</span></div>`;
+        return `<div class="chat-bubble ${m.from===state.session?'mine':'theirs'} ${m.attachment ? 'has-attachment' : ''}">${inner}<span class="chat-bubble-time">${timeAgo(m.time)}</span>${m.from===state.session && m.id ? `<button type="button" class="chat-bubble-del" data-act="delete-message" data-id="${esc(m.id)}" title="Message delete karein">${svgIcon('trash')}</button>` : ''}</div>`;
       }).join('');
 
   return `
@@ -2024,7 +2132,10 @@ function renderChatThread(contactId){
       <div class="chat-thread-head">
         <button type="button" class="back-btn" data-act="close-chat">${svgIcon('back')}</button>
         <div class="avatar" style="width:34px;height:34px">${p.photo?`<img src="${p.photo}"/>`:svgIcon('user').replace('currentColor','var(--ink-soft)')}</div>
-        <div style="font-weight:600;font-size:14px;display:flex;align-items:center;gap:4px">${esc(p.name)} ${verifiedBadge(p)}</div>
+        <div>
+          <div style="font-weight:600;font-size:14px;display:flex;align-items:center;gap:4px">${esc(p.name)} ${verifiedBadge(p)}</div>
+          ${presenceLabel(p) ? `<div style="font-size:11px;color:var(--ink-soft)">${esc(presenceLabel(p))}</div>` : ''}
+        </div>
       </div>
       <div class="chat-messages" id="chat-scroll">${bubbles}</div>
       ${state.chatError ? `<div class="blocked-note">${esc(state.chatError)}</div>` : ''}
@@ -2062,7 +2173,7 @@ function renderHome(){
             ${p.idCard === state.session ? `<button type="button" class="btn-ghost" data-act="delete-post" data-id="${p.id}" style="padding:6px 8px;margin-left:6px">${svgIcon('trash') || 'Delete'}</button>` : ''}
           </div>
           ${p.text ? `<div class="post-text">${esc(p.text)}</div>` : ''}
-          ${p.image ? `<img class="post-image" src="${p.image}" />` : ''}
+          ${p.image ? imgHtml(p.image, 'post-image', 'Post image') : ''}
           <button type="button" class="like-btn ${liked?'liked':''}" data-act="like" data-id="${p.id}">
             ${svgIcon('heart').replace('{fill}', liked ? 'currentColor' : 'none')} ${p.likes.length}
           </button>
@@ -2129,6 +2240,55 @@ function renderProfile(){
       <button type="button" class="btn-primary" data-act="save-profile">
         ${state.profileSaved ? svgIcon('check') + ' Saved' : 'Profile save karein ' + svgIcon('chevron')}
       </button>
+    </div>
+
+    <div class="card" style="margin-top:14px;padding:0;overflow:hidden">
+      <button type="button" class="settings-toggle-row" data-act="toggle-settings-panel">
+        <span class="settings-toggle-left">${svgIcon('gear')} Settings</span>
+        <span class="settings-chevron ${state.settingsOpen?'open':''}">${svgIcon('chevron')}</span>
+      </button>
+      ${state.settingsOpen ? `
+      <div class="settings-row" style="padding:14px;border-top:1px solid var(--paper-deep)">
+        <div>
+          <div class="settings-row-title">Online status hide karein</div>
+          <div class="settings-row-desc">On karne par doosre students ko aapka "Online" ya "Active X pehle" status nahi dikhega.</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="hide-online-toggle" ${profile.hideOnlineStatus ? 'checked' : ''} />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+      <div class="settings-row" style="padding:14px;border-top:1px solid var(--paper-deep)">
+        <div>
+          <div class="settings-row-title">Chat list preview hide karein</div>
+          <div class="settings-row-desc">On karne par chat list mein message ka text nahi, sirf "New message" dikhega.</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="hide-preview-toggle" ${state.hidePreview ? 'checked' : ''} />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+      <div class="settings-row" style="padding:14px;border-top:1px solid var(--paper-deep)">
+        <div>
+          <div class="settings-row-title">Data saver mode</div>
+          <div class="settings-row-desc">On karne par chat/photos turant load nahi hongi — tap karke dikhani padegi (data bachta hai).</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="data-saver-toggle" ${state.dataSaver ? 'checked' : ''} />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+      <div class="settings-row" style="padding:14px;border-top:1px solid var(--paper-deep)">
+        <div>
+          <div class="settings-row-title">Font size</div>
+          <div class="settings-row-desc">Poori website ka text size chota/normal/bada karein.</div>
+        </div>
+        <select id="font-size-select" style="padding:7px 10px;border-radius:8px;border:1px solid var(--paper-deep);font-size:12.5px">
+          <option value="small" ${state.fontSize==='small'?'selected':''}>Chota</option>
+          <option value="normal" ${state.fontSize==='normal'?'selected':''}>Normal</option>
+          <option value="large" ${state.fontSize==='large'?'selected':''}>Bada</option>
+        </select>
+      </div>` : ''}
     </div>
 
     <div class="card" style="margin-top:14px">
@@ -2260,10 +2420,15 @@ function bindEvents(){
   on('[data-act="logout"]', 'click', async () => {
     if (state.timer.running) pauseTimer();
     if (state.stopwatch.running) pauseStopwatch();
-    state.profileEdit=null; state.profileNameError=''; state.viewingProfile=null; state.chatWith=null; state.chatList=[]; state.searchQuery='';
+    state.profileEdit=null; state.profileNameError=''; state.viewingProfile=null; state.chatWith=null; state.chatList=[]; state.searchQuery=''; state.settingsOpen=false;
     try { await auth.signOut(); } catch(e){}
   });
   on('[data-act="toggle-theme"]', 'click', toggleTheme);
+  onAll('[data-act="load-image"]', 'click', e => {
+    e.preventDefault(); e.stopPropagation();
+    state.loadedImages.add(e.currentTarget.dataset.url);
+    render();
+  });
   // Tools tab se bahar jaate waqt study timer/stopwatch ko background mein
   // chalte rehne dene ki zaroorat nahi — pause kar dete hain taaki har
   // second ki re-render dusre tabs mein waste na ho.
@@ -2274,7 +2439,7 @@ function bindEvents(){
   on('[data-act="tab-home"]', 'click', () => { leaveTools(); state.tab='home'; state.viewingProfile=null; state.chatWith=null; render(); fetchFeed(); });
   on('[data-act="tab-search"]', 'click', () => { leaveTools(); state.tab='search'; state.viewingProfile=null; state.chatWith=null; render(); fetchProfiles(); });
   on('[data-act="tab-tools"]', 'click', () => { state.tab='tools'; state.viewingProfile=null; state.chatWith=null; render(); });
-  on('[data-act="tab-chat"]', 'click', () => { leaveTools(); state.tab='chat'; state.viewingProfile=null; state.chatWith=null; render(); subscribeChatList(); });
+  on('[data-act="tab-chat"]', 'click', () => { leaveTools(); state.tab='chat'; state.viewingProfile=null; state.chatWith=null; render(); subscribeChatList(); fetchProfiles(); });
   on('[data-act="tab-profile"]', 'click', () => { leaveTools(); state.tab='profile'; state.viewingProfile=null; state.chatWith=null; render(); });
   on('[data-act="tab-admin"]', 'click', () => { leaveTools(); state.tab='admin'; state.viewingProfile=null; state.chatWith=null; render(); fetchValidIds(); });
 
@@ -2285,6 +2450,7 @@ function bindEvents(){
     });
     on('#chat-text-input', 'input', e => state.chatText = e.target.value);
     on('[data-act="send-chat"]', 'click', handleSendChat);
+    onAll('[data-act="delete-message"]', 'click', e => { e.stopPropagation(); handleDeleteMessage(e.currentTarget.dataset.id); });
     on('[data-act="pick-chat-file"]', 'click', () => root.querySelector('#chat-file-input').click());
     on('#chat-file-input', 'change', async e => {
       const file = e.target.files[0]; if (!file) return;
@@ -2401,6 +2567,8 @@ function bindEvents(){
     on('[data-act="lap-stopwatch"]', 'click', lapStopwatch);
   } else if (state.tab === 'chat'){
     onAll('[data-act="open-chat"]', 'click', e => openChat(e.currentTarget.dataset.id));
+    onAll('[data-act="delete-chat"]', 'click', e => { e.stopPropagation(); handleDeleteChat(e.currentTarget.dataset.id); });
+    on('#chat-search-input', 'input', e => { state.chatSearchQuery = e.target.value; render(); });
   } else if (state.tab === 'admin'){
     on('#admin-add-id', 'input', e => state.adminAddId = e.target.value);
     on('#admin-add-class', 'change', e => state.adminAddClass = e.target.value);
@@ -2412,6 +2580,11 @@ function bindEvents(){
     onAll('[data-act="remove-valid-id"]', 'click', e => handleAdminRemoveId(e.currentTarget.dataset.id));
   } else {
     on('#profile-name', 'input', e => state.profileEdit.name = e.target.value);
+    on('#hide-online-toggle', 'change', e => handleToggleHideOnline(e.target.checked));
+    on('#hide-preview-toggle', 'change', e => { state.hidePreview = e.target.checked; localStorage.setItem('fc_hide_preview', e.target.checked ? '1' : '0'); render(); });
+    on('#data-saver-toggle', 'change', e => { state.dataSaver = e.target.checked; localStorage.setItem('fc_data_saver', e.target.checked ? '1' : '0'); render(); });
+    on('#font-size-select', 'change', e => { state.fontSize = e.target.value; localStorage.setItem('fc_font_size', e.target.value); applyFontSize(); render(); });
+    on('[data-act="toggle-settings-panel"]', 'click', () => { state.settingsOpen = !state.settingsOpen; render(); });
     on('[data-act="pick-profile-photo"]', 'click', () => root.querySelector('#profile-photo-input').click());
     on('#profile-photo-input', 'change', async e => {
       const file = e.target.files[0]; if (!file) return;
@@ -2456,7 +2629,7 @@ async function handleCreate(){
   if (!password || password.length < 6) { state.authError = 'Password kam se kam 6 character ka hona chahiye.'; return render(); }
   if (!f.name.trim()) { state.authError = 'Naam daaliye.'; return render(); }
   if (!f.subject.trim()) { state.authError = isAdmin ? 'Designation/subject daaliye.' : 'Subject daaliye.'; return render(); }
-  if (isAdmin && !(f.adminCode || '').trim()) { state.authError = 'Admin passcode daaliye.'; return render(); }
+  if (isAdmin && (f.adminCode || '').trim() !== ADMIN_CODE) { state.authError = 'Galat admin passcode.'; return render(); }
 
   state.authBusy = true; render();
   signupInFlight = true;
@@ -2554,49 +2727,30 @@ async function handleCreate(){
       const newProfile = isAdmin
         ? { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:'Staff', section:'', subject:f.subject.trim(), role:'admin', following:[], followers:[], blocked:[], verified:true, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' }
         : { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:studentClass, section:studentSection, passYear:studentPassYear, subject:f.subject.trim(), role:'student', following:[], followers:[], blocked:[], verified:false, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' };
-
+      /* Admin account ke liye: asli passcode-check ab Firestore Rules ke
+         andar, server par hota hai (adminCodeMatches()) — client wala
+         upar ka check (line ~2632) sirf turant UX feedback ke liye hai.
+         Isliye profile create karne se PEHLE, type kiya hua passcode
+         'adminRequests/{uid}' mein daalte hain (sirf apne hi uid ke
+         document mein, koi aur padh nahi sakta), taaki rule usse
+         'config/secrets' ke asli passcode se compare kar sake. */
       if (isAdmin) {
-        /* Admin passcode ka ASLI check: jo bhi passcode user ne type kiya
-           hai, use ek chhoti si apni-hi 'adminRequests/{uid}' document mein
-           daal dete hain. Iske baad neeche wala profiles.create() Firestore
-           Rules ke andar hi is submitted code ko 'config/secrets' mein
-           store asli passcode se compare karta hai — yeh comparison
-           Firebase ke server par hota hai, passcode kabhi client/browser
-           tak bhejta hi nahi. Agar galat hua to profile-create khud hi
-           permission-denied de dega, jise neeche pakad kar clear message
-           dikhate hain. */
-        await withStep('admin-code-submit', () => withTimeout(
-          db.collection('adminRequests').doc(cred.user.uid).set({ code: (f.adminCode || '').trim() }),
-          15000
-        ));
+        await withStep('admin-passcode-submit', () => withTimeout(db.collection('adminRequests').doc(cred.user.uid).set({ code: (f.adminCode || '').trim() }), 15000));
       }
-
       try {
         await withStep('profile-create', () => withAuthRetry(() => withTimeout(db.collection('profiles').doc(id).set(newProfile), 15000)));
-      } catch(profileErr){
-        if (isAdmin && profileErr && profileErr.code === 'permission-denied') {
-          const wrongCode = new Error('Galat admin passcode.');
-          wrongCode.code = 'admin-code-wrong';
-          throw wrongCode;
-        }
-        throw profileErr;
-      }
-      /* Ab apna 'adminRequests' guess-doc saaf kar dete hain — ab iski
-         zaroorat nahi, aur isme user ka type kiya hua passcode raw text
-         mein pada hai (sirf khud unko hi padhne diya jaata hai, phir bhi
-         behtar hai ise hata dena). */
-      if (isAdmin) {
-        try { await db.collection('adminRequests').doc(cred.user.uid).delete(); } catch(cleanupErr){}
+      } finally {
+        /* Passcode-guess sirf temporary tha — ab ise turant saaf kar
+           dete hain, chahe profile create safal hua ho ya fail. */
+        if (isAdmin) { try { await db.collection('adminRequests').doc(cred.user.uid).delete(); } catch(cleanupErr){} }
       }
       /* onAuthStateChanged session set karega aur data load karega */
     } catch(innerErr){
       /* Account bana chuka tha lekin profile complete hone se pehle kuch
-         fail ho gaya (jaise permission-denied ka timing-glitch, ya galat
-         admin passcode) — is adhoore account ko turant delete kar dete
-         hain, taaki yeh ID card kabhi "stuck" na ho aur student turant
-         dobara try kar sake. Apna adminRequests guess-doc bhi saaf kar
-         dete hain agar bana tha. */
-      if (isAdmin) { try { await db.collection('adminRequests').doc(cred.user.uid).delete(); } catch(cleanupErr2){} }
+         fail ho gaya (jaise permission-denied ka timing-glitch) — is
+         adhoore account ko turant delete kar dete hain, taaki yeh ID
+         card kabhi "stuck" na ho aur student turant dobara try kar sake. */
+      if (isAdmin) { try { await db.collection('adminRequests').doc(cred.user.uid).delete(); } catch(cleanupErr){} }
       try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
       throw innerErr;
     }
@@ -2725,6 +2879,39 @@ async function handleDeletePost(postId){
   }
 }
 
+async function handleDeleteMessage(messageId){
+  if (!messageId || !state.chatWith) return;
+  if (!confirm('Ye message delete karna chahte hain?')) return;
+  const idx = state.chatMessages.findIndex(m => m.id === messageId);
+  const removed = idx > -1 ? state.chatMessages[idx] : null;
+  if (idx > -1) { state.chatMessages.splice(idx, 1); render(); }
+  try {
+    const chatId = chatKey(state.session, state.chatWith);
+    await db.collection('chats').doc(chatId).collection('messages').doc(messageId).delete();
+  } catch(e){
+    if (removed) { state.chatMessages.splice(idx, 0, removed); render(); }
+  }
+}
+
+async function handleDeleteChat(otherId){
+  if (!otherId) return;
+  if (!confirm('Ye poori chat delete karna chahte hain?')) return;
+  const idx = state.chatList.findIndex(c => c.otherId === otherId);
+  const removed = idx > -1 ? state.chatList[idx] : null;
+  if (idx > -1) state.chatList.splice(idx, 1);
+  render();
+  try {
+    const chatId = chatKey(state.session, otherId);
+    const msgsSnap = await db.collection('chats').doc(chatId).collection('messages').get();
+    const batch = db.batch();
+    msgsSnap.docs.forEach(d => batch.delete(d.ref));
+    batch.delete(db.collection('chats').doc(chatId));
+    await batch.commit();
+  } catch(e){
+    if (removed) { state.chatList.splice(idx, 0, removed); render(); }
+  }
+}
+
 async function handleSaveProfile(){
   const profile = state.profiles[state.session];
   const e = state.profileEdit;
@@ -2794,6 +2981,16 @@ async function handleToggleFollow(targetId){
     await db.collection('profiles').doc(targetId).update({
       followers: nowFollowing ? firebase.firestore.FieldValue.arrayRemove(state.session) : firebase.firestore.FieldValue.arrayUnion(state.session)
     });
+  } catch(e){}
+}
+
+async function handleToggleHideOnline(hide){
+  const profile = state.profiles[state.session];
+  if (!profile) return;
+  profile.hideOnlineStatus = hide;
+  render();
+  try {
+    await db.collection('profiles').doc(state.session).update({ hideOnlineStatus: hide });
   } catch(e){}
 }
 
@@ -2912,6 +3109,26 @@ async function handleAdminRemoveId(id){
 
 function chatKey(a, b){ return [a, b].sort().join('__'); }
 
+/* Naye message ka badge dikhane ke liye — poori tarah is device ki
+   localStorage mein rakha jaata hai (Firestore mein koi naya field/
+   collection nahi, isliye rules mein bhi kuchh change nahi karna
+   padta). Har chat ke liye "aakhri baar kab dekha" time save karte
+   hain — jab bhi chat ka lastTime us se naya ho aur last message
+   humne khud na bheja ho, to unread maante hain. */
+function getChatSeenTime(chatId){
+  return parseInt(localStorage.getItem('fc_chat_seen_' + chatId) || '0', 10);
+}
+function markChatSeen(chatId, time){
+  try { localStorage.setItem('fc_chat_seen_' + chatId, String(time || Date.now())); } catch(e){}
+}
+function isChatUnread(c){
+  if (!c.lastFrom || c.lastFrom === state.session) return false;
+  return c.lastTime > getChatSeenTime(chatKey(state.session, c.otherId));
+}
+function unreadChatCount(){
+  return (state.chatList || []).filter(isChatUnread).length;
+}
+
 /* ===== Purane chat messages ka auto-cleanup (Firestore quota bachane ke
    liye) =====
    6 mahine se purane chat messages Firestore se apne aap delete ho
@@ -2968,7 +3185,8 @@ async function openChat(contactId){
   unsubChatMsgs = db.collection('chats').doc(chatId).collection('messages')
     .orderBy('time', 'asc')
     .onSnapshot(snap => {
-      state.chatMessages = snap.docs.map(d => d.data());
+      state.chatMessages = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+      markChatSeen(chatId, Date.now());
       render();
       const scroll = root.querySelector('#chat-scroll');
       if (scroll) scroll.scrollTop = scroll.scrollHeight;
@@ -3030,7 +3248,7 @@ async function handleSendChatFile(file){
     await db.collection('chats').doc(chatId).set({
       participants: [state.session, state.chatWith].sort(),
       participantUids: [myUid, other.uid].sort(),
-      lastText: previewText, lastTime: time,
+      lastText: previewText, lastTime: time, lastFrom: state.session,
     }, { merge: true });
     await db.collection('chats').doc(chatId).collection('messages').add({
       from: state.session, fromUid: myUid, text: '', time,
@@ -3061,7 +3279,7 @@ async function handleSendChat(){
     await db.collection('chats').doc(chatId).set({
       participants: [state.session, state.chatWith].sort(),
       participantUids: [myUid, other.uid].sort(),
-      lastText: text, lastTime: time,
+      lastText: text, lastTime: time, lastFrom: state.session,
     }, { merge: true });
     await db.collection('chats').doc(chatId).collection('messages').add({
       from: state.session, fromUid: myUid, text, time
@@ -3114,6 +3332,7 @@ function renderBootError(){
       subscribeChatList();
       fetchProfiles();
       fetchFeed();
+      updateLastActive();
       startBackgroundRefresh();
       startUsageTimer();
     } else {
