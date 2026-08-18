@@ -337,7 +337,11 @@ const CLOUDINARY_UPLOAD_PRESET = 'Ffcupload';
    Firestore Rules hain, jo neeche 'validIds' collection ke comments mein
    di gayi hain) — koi bhi jo yeh code jaanta hai admin account bana sakta
    hai, isliye ise sirf trusted staff ke saath share karein. */
-const ADMIN_CODE = 'FFC-STAFF-2026';
+/* NOTE: Admin passcode ab yahan hardcoded NAHI hai. Real check ab
+   Firestore Security Rules ke andar hota hai (config/secrets document se,
+   jo client kabhi seedha padh nahi sakta) — isse GitHub par public code
+   dekh kar bhi koi passcode nahi jaan sakta, aur na hi Firestore ko
+   seedha (browser console se) call karke isse bypass kar sakta hai. */
 
 /* ===== Total user cap (school-scale limit) =====
    Poori website par (student + admin dono milakar) maximum itne hi
@@ -483,6 +487,7 @@ function firebaseErrorMessage(err){
     'auth/unauthorized-domain': 'Yeh website domain Firebase mein authorize nahi hai. Firebase Console → Authentication → Settings → Authorized domains mein isse add karein.',
     'auth/operation-not-allowed': 'Firebase Console mein Email/Password sign-in method enable nahi hai. Authentication → Sign-in method mein ise enable karein.',
     'permission-denied': 'Firestore permission error. Firebase Console → Firestore → Rules check karein.',
+    'admin-code-wrong': 'Galat admin passcode.',
     'auth/configuration-not-found': 'Firebase Console mein Authentication set up nahi hai. Authentication → Get Started → Sign-in method mein Email/Password enable karein.',
     'timeout': 'Internet slow hai ya server se response nahi mil raha. Connection check karke dobara try karein.',
   };
@@ -691,21 +696,15 @@ function subscribeChatList(){
   if (unsubChatList) unsubChatList();
   const myUid = auth.currentUser && auth.currentUser.uid;
   if (!myUid) return;
-  /* Note: yahan Firestore query mein 'orderBy' jaanbujh kar nahi lagaya —
-     'array-contains' filter ke saath 'orderBy' kisi doosre field par lagane
-     ke liye Firestore ko ek composite index chahiye hota hai. Agar wo index
-     Firebase console mein bana hi na ho, to ye query hamesha fail hoti hai
-     aur chat list hamesha khaali dikhti hai (jabki chats/messages khud theek
-     kaam karte hain). Isliye sorting yahan client-side (JS mein) kar rahe
-     hain — koi index zaroori nahi rahta aur list hamesha load hoti hai. */
   unsubChatList = db.collection('chats')
     .where('participantUids', 'array-contains', myUid)
+    .orderBy('lastTime', 'desc')
     .onSnapshot(snap => {
       state.chatList = snap.docs.map(d => {
         const c = d.data();
         const otherId = (c.participants || []).find(x => x !== state.session);
         return { otherId, lastText: c.lastText || '', lastTime: c.lastTime || 0 };
-      }).sort((a, b) => b.lastTime - a.lastTime);
+      });
       if (state.tab === 'chat' && !state.chatWith && !state.viewingProfile) render();
     }, () => { state.chatList = []; });
 }
@@ -1272,7 +1271,6 @@ const state = {
   chatList: [],
   chatUploading: false,
   chatError: '',
-  chatSearchQuery: '',
 
   /* ---- Tools tab state ----
      Ye sab sirf is browser ki localStorage mein rehta hai, Firestore ko
@@ -1983,44 +1981,22 @@ function renderProfileView(idCard){
 }
 
 function renderChatList(){
-  const q = (state.chatSearchQuery || '').trim().toLowerCase();
-  const searchBar = `<div class="search-bar">${svgIcon('search')}<input id="chat-search-input" placeholder="Chat mein naam se search karein…" value="${esc(state.chatSearchQuery)}" /></div>`;
-
   if (!state.chatList.length){
-    return `${searchBar}<div class="chat-empty">Abhi koi conversation nahi hai.<br/>Search se kisi student ko dhoond kar message bhejein.</div>`;
+    return `<div class="chat-empty">Abhi koi conversation nahi hai.<br/>Search se kisi student ko dhoond kar message bhejein.</div>`;
   }
-
-  const filtered = !q ? state.chatList : state.chatList.filter(c => {
+  return state.chatList.map(c => {
     const p = state.profiles[c.otherId];
-    const name = p ? p.name : (c.otherId || '');
-    return name.toLowerCase().includes(q);
-  });
-
-  if (!filtered.length){
-    return `${searchBar}<div class="chat-empty">Koi chat nahi mili.</div>`;
-  }
-
-  const rows = filtered.map(c => {
-    /* Pehle yahan profile na milne par (naya user, ya cache abhi refresh
-       nahi hua) poori row hi hide ho jaati thi — isliye chat aayi hoti
-       thi par dikhti nahi thi. Ab profile na milne par bhi row dikhaate
-       hain (naam ki jagah ID), taaki koi bhi chat kabhi gayab na ho. */
-    const p = state.profiles[c.otherId];
-    const displayName = p ? esc(p.name) : esc(c.otherId || '');
-    const avatarInner = p && p.photo ? `<img src="${p.photo}"/>` : svgIcon('user').replace('currentColor','var(--ink-soft)');
+    if (!p) return '';
     return `
-    <div class="chat-list-row">
-      <div class="avatar" style="width:44px;height:44px;cursor:pointer" data-act="open-chat" data-id="${esc(c.otherId)}">${avatarInner}</div>
-      <div class="chat-list-text" data-act="open-chat" data-id="${esc(c.otherId)}" style="cursor:pointer">
-        <div class="chat-list-name">${displayName} ${p?verifiedBadge(p):''}</div>
+    <div class="chat-list-row" data-act="open-chat" data-id="${esc(p.idCard)}">
+      <div class="avatar" style="width:44px;height:44px">${p.photo?`<img src="${p.photo}"/>`:svgIcon('user').replace('currentColor','var(--ink-soft)')}</div>
+      <div class="chat-list-text">
+        <div class="chat-list-name">${esc(p.name)} ${verifiedBadge(p)}</div>
         <div class="chat-list-preview">${esc(c.lastText||'')}</div>
       </div>
       <div class="chat-list-time">${timeAgo(c.lastTime)}</div>
-      <button type="button" class="btn-ghost" data-act="delete-chat" data-id="${esc(c.otherId)}" style="padding:6px 8px;margin-left:6px">${svgIcon('trash')}</button>
     </div>`;
   }).join('');
-
-  return `${searchBar}${rows}`;
 }
 
 function renderChatThread(contactId){
@@ -2298,7 +2274,7 @@ function bindEvents(){
   on('[data-act="tab-home"]', 'click', () => { leaveTools(); state.tab='home'; state.viewingProfile=null; state.chatWith=null; render(); fetchFeed(); });
   on('[data-act="tab-search"]', 'click', () => { leaveTools(); state.tab='search'; state.viewingProfile=null; state.chatWith=null; render(); fetchProfiles(); });
   on('[data-act="tab-tools"]', 'click', () => { state.tab='tools'; state.viewingProfile=null; state.chatWith=null; render(); });
-  on('[data-act="tab-chat"]', 'click', () => { leaveTools(); state.tab='chat'; state.viewingProfile=null; state.chatWith=null; render(); subscribeChatList(); fetchProfiles(); });
+  on('[data-act="tab-chat"]', 'click', () => { leaveTools(); state.tab='chat'; state.viewingProfile=null; state.chatWith=null; render(); subscribeChatList(); });
   on('[data-act="tab-profile"]', 'click', () => { leaveTools(); state.tab='profile'; state.viewingProfile=null; state.chatWith=null; render(); });
   on('[data-act="tab-admin"]', 'click', () => { leaveTools(); state.tab='admin'; state.viewingProfile=null; state.chatWith=null; render(); fetchValidIds(); });
 
@@ -2425,8 +2401,6 @@ function bindEvents(){
     on('[data-act="lap-stopwatch"]', 'click', lapStopwatch);
   } else if (state.tab === 'chat'){
     onAll('[data-act="open-chat"]', 'click', e => openChat(e.currentTarget.dataset.id));
-    onAll('[data-act="delete-chat"]', 'click', e => { e.stopPropagation(); handleDeleteChat(e.currentTarget.dataset.id); });
-    on('#chat-search-input', 'input', e => { state.chatSearchQuery = e.target.value; render(); });
   } else if (state.tab === 'admin'){
     on('#admin-add-id', 'input', e => state.adminAddId = e.target.value);
     on('#admin-add-class', 'change', e => state.adminAddClass = e.target.value);
@@ -2482,7 +2456,7 @@ async function handleCreate(){
   if (!password || password.length < 6) { state.authError = 'Password kam se kam 6 character ka hona chahiye.'; return render(); }
   if (!f.name.trim()) { state.authError = 'Naam daaliye.'; return render(); }
   if (!f.subject.trim()) { state.authError = isAdmin ? 'Designation/subject daaliye.' : 'Subject daaliye.'; return render(); }
-  if (isAdmin && (f.adminCode || '').trim() !== ADMIN_CODE) { state.authError = 'Galat admin passcode.'; return render(); }
+  if (isAdmin && !(f.adminCode || '').trim()) { state.authError = 'Admin passcode daaliye.'; return render(); }
 
   state.authBusy = true; render();
   signupInFlight = true;
@@ -2580,13 +2554,49 @@ async function handleCreate(){
       const newProfile = isAdmin
         ? { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:'Staff', section:'', subject:f.subject.trim(), role:'admin', following:[], followers:[], blocked:[], verified:true, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' }
         : { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:studentClass, section:studentSection, passYear:studentPassYear, subject:f.subject.trim(), role:'student', following:[], followers:[], blocked:[], verified:false, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' };
-      await withStep('profile-create', () => withAuthRetry(() => withTimeout(db.collection('profiles').doc(id).set(newProfile), 15000)));
+
+      if (isAdmin) {
+        /* Admin passcode ka ASLI check: jo bhi passcode user ne type kiya
+           hai, use ek chhoti si apni-hi 'adminRequests/{uid}' document mein
+           daal dete hain. Iske baad neeche wala profiles.create() Firestore
+           Rules ke andar hi is submitted code ko 'config/secrets' mein
+           store asli passcode se compare karta hai — yeh comparison
+           Firebase ke server par hota hai, passcode kabhi client/browser
+           tak bhejta hi nahi. Agar galat hua to profile-create khud hi
+           permission-denied de dega, jise neeche pakad kar clear message
+           dikhate hain. */
+        await withStep('admin-code-submit', () => withTimeout(
+          db.collection('adminRequests').doc(cred.user.uid).set({ code: (f.adminCode || '').trim() }),
+          15000
+        ));
+      }
+
+      try {
+        await withStep('profile-create', () => withAuthRetry(() => withTimeout(db.collection('profiles').doc(id).set(newProfile), 15000)));
+      } catch(profileErr){
+        if (isAdmin && profileErr && profileErr.code === 'permission-denied') {
+          const wrongCode = new Error('Galat admin passcode.');
+          wrongCode.code = 'admin-code-wrong';
+          throw wrongCode;
+        }
+        throw profileErr;
+      }
+      /* Ab apna 'adminRequests' guess-doc saaf kar dete hain — ab iski
+         zaroorat nahi, aur isme user ka type kiya hua passcode raw text
+         mein pada hai (sirf khud unko hi padhne diya jaata hai, phir bhi
+         behtar hai ise hata dena). */
+      if (isAdmin) {
+        try { await db.collection('adminRequests').doc(cred.user.uid).delete(); } catch(cleanupErr){}
+      }
       /* onAuthStateChanged session set karega aur data load karega */
     } catch(innerErr){
       /* Account bana chuka tha lekin profile complete hone se pehle kuch
-         fail ho gaya (jaise permission-denied ka timing-glitch) — is
-         adhoore account ko turant delete kar dete hain, taaki yeh ID
-         card kabhi "stuck" na ho aur student turant dobara try kar sake. */
+         fail ho gaya (jaise permission-denied ka timing-glitch, ya galat
+         admin passcode) — is adhoore account ko turant delete kar dete
+         hain, taaki yeh ID card kabhi "stuck" na ho aur student turant
+         dobara try kar sake. Apna adminRequests guess-doc bhi saaf kar
+         dete hain agar bana tha. */
+      if (isAdmin) { try { await db.collection('adminRequests').doc(cred.user.uid).delete(); } catch(cleanupErr2){} }
       try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
       throw innerErr;
     }
@@ -2712,25 +2722,6 @@ async function handleDeletePost(postId){
   } catch(e){
     state.feed.splice(idx, 0, post);
     render();
-  }
-}
-
-async function handleDeleteChat(otherId){
-  if (!otherId) return;
-  if (!confirm('Ye poori chat delete karna chahte hain?')) return;
-  const idx = state.chatList.findIndex(c => c.otherId === otherId);
-  const removed = idx > -1 ? state.chatList[idx] : null;
-  if (idx > -1) state.chatList.splice(idx, 1);
-  render();
-  try {
-    const chatId = chatKey(state.session, otherId);
-    const msgsSnap = await db.collection('chats').doc(chatId).collection('messages').get();
-    const batch = db.batch();
-    msgsSnap.docs.forEach(d => batch.delete(d.ref));
-    batch.delete(db.collection('chats').doc(chatId));
-    await batch.commit();
-  } catch(e){
-    if (removed) { state.chatList.splice(idx, 0, removed); render(); }
   }
 }
 
