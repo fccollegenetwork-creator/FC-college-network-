@@ -929,7 +929,7 @@ function idCardHTML(profile, size){
   const bars = Array.from({length:14}).map((_,i)=>`<span style="height:${i%3===0?12:8}px"></span>`).join('');
   const metaLine = isAdmin
     ? `<div class="idcard-meta">Admin · ${esc(profile.subject) || '—'}</div>`
-    : `<div class="idcard-meta">${esc(profile.class) || '—'}${profile.section ? ' · Sec ' + esc(profile.section) : ''}</div><div class="idcard-meta">${esc(profile.subject) || '—'}</div>`;
+    : `<div class="idcard-meta">${esc(profile.class) || '—'}${profile.section ? ' · Sec ' + esc(profile.section) : ''}</div><div class="idcard-meta">${esc(profile.subject) || '—'}</div>${profile.school ? `<div class="idcard-meta">${esc(profile.school)}</div>` : ''}`;
   return `
   <div class="idcard ${size}" style="background:linear-gradient(155deg, var(--navy-deep) 0%, ${color} 130%)">
     <div class="idcard-head">
@@ -1372,7 +1372,7 @@ const state = {
   introStep: introAlreadySeen() ? null : 'terms',
   introChecked: false,
   authMode: 'login',
-  authForm: { idCard:'', password:'', name:'', klass:'', section:'A', subject:'', photo:'', role:'student', adminCode:'' },
+  authForm: { idCard:'', password:'', name:'', klass:'', section:'A', school:'', subject:'', photo:'', role:'student', adminCode:'' },
   authError: '',
   authBusy: false,
   validIds: {},
@@ -1391,6 +1391,7 @@ const state = {
   profileEdit: null,
   settingsOpen: false,
   profileNameError: '',
+  profileNameLockAttempted: false,
   passwordChange: { current:'', next:'', error:'', busy:false, success:false },
   profileSaved: false,
   searchQuery: '',
@@ -1484,23 +1485,23 @@ function render(){
 }
 
 const INTRO_TERMS = [
-  `SeniorCircle sirf apne institute ke students (aur admin ne verify kiye hue staff) ke liye ek private network hai — ek unique serial number/ID card se sign in hota hai.`,
-  `Apna ID card, password aur admin passcode (agar admin hain) kisi ke saath share na karein. Apni ID se hone waali har activity ki zimmedari aapki khud ki hai.`,
-  `Apna asli naam aur photo hi use karein. Kisi doosre student/staff ke naam par fake profile banana, ya kisi ka photo bina permission ke use karna allowed nahi hai.`,
-  `Post, chat ya profile mein bullying, harassment, hate speech, nudity/adult content, ya kisi bhi tarah ka galat/nuksaandayak content daalna sakht mana hai — aisa content bina warning ke hata diya ja sakta hai aur account block/delete bhi ho sakta hai.`,
-  `Aapka naam, class/course, section, subject, photo aur posts doosre logged-in students ko dikhte hain (feed/search/chat ke liye). Chat sirf un logon ke beech dikhti hai jo us conversation mein shaamil hain.`,
-  `Admin account sirf sahi passcode ke saath, school/institute ki taraf se authorized staff hi banayein — admin ke paas kuch extra rights hote hain (jaise naye serial numbers whitelist karna) jo sirf institute ke record/verification ke liye use hone chahiye.`,
-  `Yeh Terms kabhi bhi update ho sakti hain. App ka use jaari rakhna iska matlab hai ki aap updated Terms se sahmat hain.`,
+  `SeniorCircle is a private network only for students of your own institute (and staff verified by an admin) — sign in happens with a unique serial number/ID card.`,
+  `Do not share your ID card, password, or admin passcode (if you're an admin) with anyone. You are responsible for any activity that happens through your ID.`,
+  `Use your real name and photo only. Creating a fake profile under another student's/staff's name, or using someone's photo without permission, is not allowed.`,
+  `Posting bullying, harassment, hate speech, nudity/adult content, or any harmful/inappropriate content in posts, chat, or your profile is strictly prohibited — such content can be removed without warning, and your account may be blocked/deleted.`,
+  `Your name, class/course, section, subject, photo, and posts are visible to other logged-in students (for feed/search/chat purposes). A chat is only visible to the people included in that conversation.`,
+  `Admin accounts should only be created by authorized staff from the school/institute, with the correct passcode — admins have some extra rights (like whitelisting new serial numbers) which should only be used for the institute's record-keeping/verification.`,
+  `These Terms may be updated at any time. Continuing to use the app means you agree to the updated Terms.`,
 ];
 
 const INTRO_ABOUT = [
-  `SeniorCircle ek student-first app hai — koi bhi class (10, 11, 12) ya degree/diploma course ka student yahan apna ID card bana kar judd sakta hai, bina kisi "staff" ya class-wise depend hue.`,
-  `Home tab par apne institute ke doosre students ke posts dekh sakte hain, apni post daal sakte hain aur like kar sakte hain.`,
-  `Search se doosre students/profiles dhoond kar follow kar sakte hain (private account ho to follow-request bhejni padegi).`,
-  `Chat tab se ek-dusre ko direct message kar sakte hain — sirf wahi log ek chat dekh sakte hain jo usme shaamil hain.`,
-  `Tools tab mein padhai ke liye kaafi free tools hain — GPA/percentage calculator, study timer, flashcards, timetable, checklist, unit converter aur bhi bahut kuch — yeh sab sirf isi device par (offline) kaam karte hain.`,
-  `Profile tab se apna naam/photo update kar sakte hain aur apna digital ID card kabhi bhi dekh sakte hain.`,
-  `Naya account banane se pehle admin ko aapka serial number pehle se whitelist karna hota hai — isse sirf institute ke asli students/staff hi account bana paate hain.`,
+  `SeniorCircle is a student-first app — a Class 12 student from your school can create an ID card and join here, without depending on any "staff" or class-wise setup.`,
+  `On the Home tab, you can see posts from other students at your institute, add your own posts, and like them.`,
+  `Use Search to find other students/profiles and follow them (if the account is private, you'll need to send a follow request).`,
+  `Use the Chat tab to message each other directly — only the people included in a chat can see it.`,
+  `The Tools tab has plenty of free tools for studying — GPA/percentage calculator, study timer, flashcards, timetable, checklist, unit converter, and more — all of these work only on this device (offline).`,
+  `Use the Profile tab to update your name/photo, and to view your digital ID card anytime.`,
+  `Before creating a new account, the admin needs to whitelist your serial number first — this ensures only genuine students/staff of the institute can create an account.`,
 ];
 
 function introChecklistHtml(items){
@@ -1523,8 +1524,8 @@ function renderIntro(){
         </div>
         <h1 class="brand-headline">${isTerms ? 'Terms & Conditions' : 'About SeniorCircle'}</h1>
         <p class="brand-sub">${isTerms
-          ? 'Aage badhne se pehle in Terms ko padh lein — yeh aapke account aur data ke use ko cover karti hain.'
-          : 'App use karne se pehle jaan lein SeniorCircle mein kya-kya mil sakta hai.'}</p>
+          ? 'Please read these Terms before continuing — they cover the use of your account and data.'
+          : 'Learn what you can do in SeniorCircle before using the app.'}</p>
       </div>
     </div>
 
@@ -1540,7 +1541,7 @@ function renderIntro(){
         <div class="field" style="display:flex;align-items:flex-start;gap:8px;margin-top:14px">
           <input id="intro-agree-checkbox" type="checkbox" style="margin-top:3px;width:16px;height:16px;flex-shrink:0" ${state.introChecked ? 'checked' : ''} />
           <label for="intro-agree-checkbox" style="font-size:13px;color:var(--ink-soft);cursor:pointer">
-            ${isTerms ? 'Maine Terms & Conditions pura padh liya hai aur main sahmat hoon.' : 'Maine app ke baare mein di gayi jaankari pura padh/samajh li hai.'}
+            ${isTerms ? 'I have read the full Terms & Conditions and I agree.' : 'I have read and understood the information about the app.'}
           </label>
         </div>
 
@@ -1576,7 +1577,7 @@ function renderAuth(){
         ${idCardHTML(previewProfile, 'full')}
         <div class="brand-note">
           ${svgIcon('alert').replace('currentColor','#8A93AC')}
-          <span>Class 10, 11, 12 and all degree/diploma courses welcome — admin adds your serial number first, then you can create your ID card.</span>
+          <span>Class 12 students welcome — admin adds your serial number first, then you can create your ID card.</span>
         </div>
       </div>
     </div>
@@ -1622,22 +1623,15 @@ function renderAuth(){
 
           ${f.role !== 'admin' ? `
             <div class="field">
-              <label>Class / Course</label>
+              <label>Class</label>
               <select id="create-class">
                 <option value="">Select…</option>
-                <optgroup label="School">
-                  ${['Class 10','Class 11','Class 12'].map(c=>`<option value="${c}" ${f.klass===c?'selected':''}>${c}</option>`).join('')}
-                </optgroup>
-                <optgroup label="Undergraduate">
-                  ${['BA','B.Com','B.Sc','BBA','BCA','B.Tech','B.E.','LLB','B.Ed','BHM','BPharm'].map(c=>`<option value="${c}" ${f.klass===c?'selected':''}>${c}</option>`).join('')}
-                </optgroup>
-                <optgroup label="Postgraduate">
-                  ${['MA','M.Com','M.Sc','MBA','MCA','M.Tech','LLM','M.Ed','PhD'].map(c=>`<option value="${c}" ${f.klass===c?'selected':''}>${c}</option>`).join('')}
-                </optgroup>
-                <optgroup label="Other">
-                  ${['Diploma','Other'].map(c=>`<option value="${c}" ${f.klass===c?'selected':''}>${c}</option>`).join('')}
-                </optgroup>
+                ${['Class 12'].map(c=>`<option value="${c}" ${f.klass===c?'selected':''}>${c}</option>`).join('')}
               </select>
+            </div>
+            <div class="field">
+              <label>School Name</label>
+              <input id="create-school" placeholder="Enter your school name" value="${esc(f.school)}" />
             </div>
           ` : ''}
 
@@ -2031,7 +2025,7 @@ function renderToolPeriodic(){
       <div class="tool-card-sub">All 118 elements — search by name or symbol, tap for details.</div>
       <div class="field"><input id="periodic-search" placeholder="Search: name, symbol or number…" value="${esc(state.periodicSearch)}" /></div>
       ${sel ? `
-        <div class="tool-result" style="background:${CAT_COLORS[sel[4]]}22;text-align:left;">
+        <div class="tool-result" style="background:${CAT_COLORS[sel[4]]}${state.theme==='dark'?'3d':'22'};text-align:left;">
           <div style="display:flex;align-items:center;gap:10px;">
             <div class="periodic-tile-lg" style="background:${CAT_COLORS[sel[4]]}">${esc(sel[1])}</div>
             <div>
@@ -2041,7 +2035,7 @@ function renderToolPeriodic(){
           </div>
         </div>` : ''}
       <div class="periodic-grid">
-        ${list.map(e => `<button type="button" class="periodic-tile" data-act="periodic-pick" data-id="${e[0]}" style="background:${CAT_COLORS[e[4]]}${state.periodicSelected===e[0]?'':'55'}">
+        ${list.map(e => `<button type="button" class="periodic-tile" data-act="periodic-pick" data-id="${e[0]}" style="background:${CAT_COLORS[e[4]]}${state.periodicSelected===e[0]?'':(state.theme==='dark'?'dd':'55')}">
           <span class="periodic-tile-num">${e[0]}</span><span class="periodic-tile-sym">${esc(e[1])}</span>
         </button>`).join('')}
         ${list.length===0 ? `<div class="empty-state" style="padding:24px 0;width:100%">Nothing found.</div>` : ''}
@@ -2509,16 +2503,16 @@ function renderProfile(){
     <div class="profile-card-wrap">${idCardHTML({ ...profile, name: e.name, photo: e.photo, verified: profile.verified }, 'full')}</div>
     ${followRequestsHtml}
     <div class="card">
-      <div class="profile-note">Profile edit karein — sirf naam aur photo badal sakte hain</div>
+      <div class="profile-note">Edit profile — you can only change your name and photo</div>
       <div class="photo-row" style="margin-bottom:16px">
         <div class="photo-thumb" style="width:64px;height:64px;border-radius:999px">${e.photo ? `<img src="${e.photo}"/>` : svgIcon('user').replace('currentColor','var(--ink-soft)')}</div>
-        <button type="button" class="btn-ghost" data-act="pick-profile-photo">Photo badlein</button>
+        <button type="button" class="btn-ghost" data-act="pick-profile-photo">Change photo</button>
         <input id="profile-photo-input" type="file" accept="image/*" hidden />
       </div>
       <div class="field">
-        <label>Naam</label>
-        <input id="profile-name" value="${esc(e.name)}" ${nameChangeDaysLeft(profile) > 0 ? 'disabled' : ''} />
-        ${nameChangeDaysLeft(profile) > 0
+        <label>Name</label>
+        <input id="profile-name" value="${esc(e.name)}" />
+        ${(state.profileNameLockAttempted && nameChangeDaysLeft(profile) > 0)
           ? `<div class="verify-hint" style="margin-top:6px">Name is locked — you can change it again in ${nameChangeDaysLeft(profile)} day(s) (to prevent misuse, the name can only be changed once a month).</div>`
           : (e.name !== profile.name
               ? `<div class="verify-hint" style="margin-top:6px">After changing your name, the next change will only be possible after at least ${NAME_CHANGE_COOLDOWN_DAYS} days — your photo can be changed anytime. Every profile name must be unique across the website.</div>`
@@ -2530,7 +2524,8 @@ function renderProfile(){
           ? `<div class="chip"><div class="chip-label">Designation</div><div class="chip-value">${esc(profile.subject)}</div></div>`
           : `<div class="chip"><div class="chip-label">Class</div><div class="chip-value">${esc(profile.class)}</div></div>
         <div class="chip"><div class="chip-label">Section</div><div class="chip-value">${esc(profile.section)}</div></div>
-        <div class="chip"><div class="chip-label">Subject</div><div class="chip-value">${esc(profile.subject)}</div></div>`}
+        <div class="chip"><div class="chip-label">Subject</div><div class="chip-value">${esc(profile.subject)}</div></div>
+        <div class="chip"><div class="chip-label">School</div><div class="chip-value">${esc(profile.school || '—')}</div></div>`}
       </div>
       <div class="stat-row">
         <div class="stat-box" style="cursor:pointer" data-act="open-follow-list" data-id="${esc(profile.idCard)}" data-type="followers"><div class="stat-num">${(profile.followers||[]).length}</div><div class="stat-label">Followers</div></div>
@@ -2538,7 +2533,7 @@ function renderProfile(){
       </div>
 
       <button type="button" class="btn-primary" data-act="save-profile">
-        ${state.profileSaved ? svgIcon('check') + ' Saved' : 'Profile save karein ' + svgIcon('chevron')}
+        ${state.profileSaved ? svgIcon('check') + ' Saved' : 'Save profile ' + svgIcon('chevron')}
       </button>
     </div>
 
@@ -2550,8 +2545,8 @@ function renderProfile(){
       ${state.settingsOpen ? `
       <div class="settings-row" style="padding:14px;border-top:1px solid var(--paper-deep)">
         <div>
-          <div class="settings-row-title">Online status hide karein</div>
-          <div class="settings-row-desc">On karne par doosre students ko aapka "Online" ya "Active X pehle" status nahi dikhega.</div>
+          <div class="settings-row-title">Hide online status</div>
+          <div class="settings-row-desc">When on, other students won't see your "Online" or "Active X ago" status.</div>
         </div>
         <label class="switch">
           <input type="checkbox" id="hide-online-toggle" ${profile.hideOnlineStatus ? 'checked' : ''} />
@@ -2561,7 +2556,7 @@ function renderProfile(){
       <div class="settings-row" style="padding:14px;border-top:1px solid var(--paper-deep)">
         <div>
           <div class="settings-row-title">Private account</div>
-          <div class="settings-row-desc">On karne par sirf aapke followers hi aapke posts dekh sakenge — baaki students ko na home feed mein na aapki profile par koi post dikhega.</div>
+          <div class="settings-row-desc">When on, only your followers can see your posts — other students won't see any posts on the home feed or your profile.</div>
         </div>
         <label class="switch">
           <input type="checkbox" id="private-account-toggle" ${profile.privateAccount ? 'checked' : ''} />
@@ -2570,8 +2565,8 @@ function renderProfile(){
       </div>
       <div class="settings-row" style="padding:14px;border-top:1px solid var(--paper-deep)">
         <div>
-          <div class="settings-row-title">Chat list preview hide karein</div>
-          <div class="settings-row-desc">On karne par chat list mein message ka text nahi, sirf "New message" dikhega.</div>
+          <div class="settings-row-title">Hide chat list preview</div>
+          <div class="settings-row-desc">When on, the chat list will show "New message" instead of the message text.</div>
         </div>
         <label class="switch">
           <input type="checkbox" id="hide-preview-toggle" ${state.hidePreview ? 'checked' : ''} />
@@ -2581,7 +2576,7 @@ function renderProfile(){
       <div class="settings-row" style="padding:14px;border-top:1px solid var(--paper-deep)">
         <div>
           <div class="settings-row-title">Data saver mode</div>
-          <div class="settings-row-desc">On karne par chat/photos turant load nahi hongi — tap karke dikhani padegi (data bachta hai).</div>
+          <div class="settings-row-desc">When on, chat photos won't load automatically — tap to view them (saves data).</div>
         </div>
         <label class="switch">
           <input type="checkbox" id="data-saver-toggle" ${state.dataSaver ? 'checked' : ''} />
@@ -2591,29 +2586,29 @@ function renderProfile(){
       <div class="settings-row" style="padding:14px;border-top:1px solid var(--paper-deep)">
         <div>
           <div class="settings-row-title">Font size</div>
-          <div class="settings-row-desc">Poori website ka text size chota/normal/bada karein.</div>
+          <div class="settings-row-desc">Change the text size across the whole website — small/normal/large.</div>
         </div>
         <select id="font-size-select" style="padding:7px 10px;border-radius:8px;border:1px solid var(--paper-deep);font-size:12.5px">
-          <option value="small" ${state.fontSize==='small'?'selected':''}>Chota</option>
+          <option value="small" ${state.fontSize==='small'?'selected':''}>Small</option>
           <option value="normal" ${state.fontSize==='normal'?'selected':''}>Normal</option>
-          <option value="large" ${state.fontSize==='large'?'selected':''}>Bada</option>
+          <option value="large" ${state.fontSize==='large'?'selected':''}>Large</option>
         </select>
       </div>` : ''}
     </div>
 
     <div class="card" style="margin-top:14px">
-      <div class="profile-note">Password badlein</div>
+      <div class="profile-note">Change password</div>
       <div class="field">
-        <label>Purana password</label>
-        <input id="pw-current" type="password" placeholder="Abhi ka password" value="${esc(state.passwordChange.current)}" />
+        <label>Current password</label>
+        <input id="pw-current" type="password" placeholder="Current password" value="${esc(state.passwordChange.current)}" />
       </div>
       <div class="field">
-        <label>Naya password</label>
-        <input id="pw-next" type="password" placeholder="Kam se kam 6 character" value="${esc(state.passwordChange.next)}" />
+        <label>New password</label>
+        <input id="pw-next" type="password" placeholder="At least 6 characters" value="${esc(state.passwordChange.next)}" />
       </div>
       ${state.passwordChange.error ? `<div class="error-note">${esc(state.passwordChange.error)}</div>` : ''}
       <button type="button" class="btn-primary" data-act="change-password" ${state.passwordChange.busy?'disabled':''}>
-        ${state.passwordChange.success ? svgIcon('check') + ' Password badal gaya' : (state.passwordChange.busy ? 'Badal raha hai…' : 'Password badlein')}
+        ${state.passwordChange.success ? svgIcon('check') + ' Password changed' : (state.passwordChange.busy ? 'Changing…' : 'Change password')}
       </button>
     </div>
   `;
@@ -2625,7 +2620,7 @@ function renderAdmin(){
   const registeredIds = new Set(Object.values(state.profiles).filter(p => p.role !== 'admin').map(p => p.idCard));
 
   const rows = validIdList.length === 0
-    ? `<div class="empty-state">Abhi whitelist khaali hai. Neeche se ID numbers add karein.</div>`
+    ? `<div class="empty-state">The whitelist is empty right now. Add ID numbers below.</div>`
     : validIdList.map(id => {
         const used = registeredIds.has(id);
         const rec = valid[id] || {};
@@ -2633,55 +2628,55 @@ function renderAdmin(){
         <div class="user-row">
           <div class="user-row-info">
             <div class="user-row-name">${esc(id)}</div>
-            <div class="user-row-meta">Class ${esc(rec.class || '—')} · Sec ${esc(rec.section || '—')}${rec.passYear ? ` · Pass ${esc(String(rec.passYear))}` : ''} · ${used ? 'Student ne account bana liya hai' : 'Abhi tak koi account nahi bana'}</div>
+            <div class="user-row-meta">Class ${esc(rec.class || '—')} · Sec ${esc(rec.section || '—')}${rec.passYear ? ` · Pass ${esc(String(rec.passYear))}` : ''} · ${used ? 'Student has created an account' : 'No account created yet'}</div>
           </div>
           <span class="whitelist-badge ${used?'used':'free'}">${used?'Registered':'Free'}</span>
-          <button type="button" class="block-btn" data-act="remove-valid-id" data-id="${esc(id)}">${svgIcon('x')} Hataayein</button>
+          <button type="button" class="block-btn" data-act="remove-valid-id" data-id="${esc(id)}">${svgIcon('x')} Remove</button>
         </div>`;
       }).join('');
 
   return `
     <div class="card" style="margin-bottom:14px">
       <div class="profile-note">Pre-approved serial number list</div>
-      <div class="verify-hint" style="margin-bottom:12px">Only serial numbers added here can register — anyone else trying to sign up will be blocked. Class/Course is chosen by the student themself; the fields below are just for your own record.</div>
+      <div class="verify-hint" style="margin-bottom:12px">Only serial numbers added here can register — anyone else trying to sign up will be blocked. Class is chosen by the student themself; the fields below are just for your own record.</div>
       <div class="stat-row">
-        <div class="stat-box"><div class="stat-num">${validIdList.length}</div><div class="stat-label">Whitelist mein</div></div>
+        <div class="stat-box"><div class="stat-num">${validIdList.length}</div><div class="stat-label">In whitelist</div></div>
         <div class="stat-box"><div class="stat-num">${validIdList.filter(id=>registeredIds.has(id)).length}</div><div class="stat-label">Registered</div></div>
       </div>
     </div>
 
     <div class="card" style="margin-bottom:14px">
-      <div class="profile-note">Ek ID number add karein</div>
+      <div class="profile-note">Add one ID number</div>
       <div class="field">
         <label>Serial Number</label>
-        <input id="admin-add-id" placeholder="jaise: 11851" value="${esc(state.adminAddId)}" />
+        <input id="admin-add-id" placeholder="e.g. 11851" value="${esc(state.adminAddId)}" />
       </div>
       <div class="row2">
         <div class="field">
-          <label>Class / Course (optional)</label>
-          <input id="admin-add-class" placeholder="jaise: 12 ya BA" value="${esc(state.adminAddClass)}" />
+          <label>Class (optional)</label>
+          <input id="admin-add-class" placeholder="e.g. 12" value="${esc(state.adminAddClass)}" />
         </div>
         <div class="field">
           <label>Section (optional)</label>
-          <input id="admin-add-section" placeholder="jaise: A" value="${esc(state.adminAddSection)}" />
+          <input id="admin-add-section" placeholder="e.g. A" value="${esc(state.adminAddSection)}" />
         </div>
       </div>
       <div class="field">
         <label>Passing Year (optional)</label>
-        <input id="admin-add-passyear" placeholder="jaise: 2028" value="${esc(state.adminAddPassYear)}" />
+        <input id="admin-add-passyear" placeholder="e.g. 2028" value="${esc(state.adminAddPassYear)}" />
       </div>
       ${state.adminError ? `<div class="error-note">${esc(state.adminError)}</div>` : ''}
-      <button type="button" class="btn-primary" data-act="admin-add-id" ${state.adminBusy?'disabled':''}>${svgIcon('check')} ${state.adminBusy?'Add ho raha hai…':'Add karein'}</button>
+      <button type="button" class="btn-primary" data-act="admin-add-id" ${state.adminBusy?'disabled':''}>${svgIcon('check')} ${state.adminBusy?'Adding…':'Add'}</button>
     </div>
 
     <div class="card" style="margin-bottom:14px">
-      <div class="profile-note">Ek saath bahut se number add karein</div>
+      <div class="profile-note">Add many numbers at once</div>
       <div class="field">
-        <label>Har line mein: ID,Class,Section,PassingYear</label>
-        <textarea id="admin-bulk-ids" rows="5" placeholder="11851,10,A&#10;11852,BA,&#10;11853,12,A,2028">${esc(state.adminBulkIds)}</textarea>
-        <div class="verify-hint" style="margin-top:6px">Format: ek line mein ek entry — <code>ID,Class,Section,PassingYear</code>. Class/Section/PassingYear sabhi optional hain, sirf record ke liye.</div>
+        <label>One per line: ID,Class,Section,PassingYear</label>
+        <textarea id="admin-bulk-ids" rows="5" placeholder="11851,12,A&#10;11852,12,&#10;11853,12,A,2028">${esc(state.adminBulkIds)}</textarea>
+        <div class="verify-hint" style="margin-top:6px">Format: one entry per line — <code>ID,Class,Section,PassingYear</code>. Class/Section/PassingYear are all optional, just for your own record.</div>
       </div>
-      <button type="button" class="btn-primary" data-act="admin-bulk-add" ${state.adminBusy?'disabled':''}>${svgIcon('check')} ${state.adminBusy?'Add ho raha hai…':'Sabko add karein'}</button>
+      <button type="button" class="btn-primary" data-act="admin-bulk-add" ${state.adminBusy?'disabled':''}>${svgIcon('check')} ${state.adminBusy?'Adding…':'Add all'}</button>
     </div>
 
     <div class="admin-section-title" style="font-size:12px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 10px;">Whitelist</div>
@@ -2726,6 +2721,7 @@ function bindEvents(){
     on('#create-name', 'input', e => { state.authForm.name = e.target.value; });
     on('#create-subject', 'input', e => { state.authForm.subject = e.target.value; });
     on('#create-class', 'change', e => { state.authForm.klass = e.target.value; });
+    on('#create-school', 'input', e => { state.authForm.school = e.target.value; });
     on('#create-admincode', 'input', e => { state.authForm.adminCode = e.target.value; });
     on('[data-act="pick-photo"]', 'click', () => root.querySelector('#create-photo-input').click());
     on('#create-photo-input', 'change', async e => {
@@ -2740,7 +2736,7 @@ function bindEvents(){
   on('[data-act="logout"]', 'click', async () => {
     if (state.timer.running) pauseTimer();
     if (state.stopwatch.running) pauseStopwatch();
-    state.profileEdit=null; state.profileNameError=''; state.viewingProfile=null; state.viewingFollowList=null; state.chatWith=null; state.chatList=[]; state.searchQuery=''; state.settingsOpen=false;
+    state.profileEdit=null; state.profileNameError=''; state.profileNameLockAttempted=false; state.viewingProfile=null; state.viewingFollowList=null; state.chatWith=null; state.chatList=[]; state.searchQuery=''; state.settingsOpen=false;
     try { await auth.signOut(); } catch(e){}
   });
   on('[data-act="toggle-theme"]', 'click', toggleTheme);
@@ -2915,7 +2911,7 @@ function bindEvents(){
   } else {
     onAll('[data-act="accept-follow-request"]', 'click', e => handleAcceptFollowRequest(e.currentTarget.dataset.id));
     onAll('[data-act="decline-follow-request"]', 'click', e => handleDeclineFollowRequest(e.currentTarget.dataset.id));
-    on('#profile-name', 'input', e => state.profileEdit.name = e.target.value);
+    on('#profile-name', 'input', e => { state.profileEdit.name = e.target.value; state.profileNameLockAttempted = false; });
     on('#hide-online-toggle', 'change', e => handleToggleHideOnline(e.target.checked));
     on('#private-account-toggle', 'change', e => handleTogglePrivateAccount(e.target.checked));
     on('#hide-preview-toggle', 'change', e => { state.hidePreview = e.target.checked; localStorage.setItem('fc_hide_preview', e.target.checked ? '1' : '0'); render(); });
@@ -2966,7 +2962,8 @@ async function handleCreate(){
   if (!parsedId) { state.authError = 'ID card number is invalid. Enter your serial number (numbers only, e.g. 11851).'; return render(); }
   if (!password || password.length < 6) { state.authError = 'Password must be at least 6 characters long.'; return render(); }
   if (!f.name.trim()) { state.authError = 'Please enter your name.'; return render(); }
-  if (!isAdmin && !(f.klass || '').trim()) { state.authError = 'Please select your Class / Course.'; return render(); }
+  if (!isAdmin && !(f.klass || '').trim()) { state.authError = 'Please select your Class.'; return render(); }
+  if (!isAdmin && !(f.school || '').trim()) { state.authError = 'Please enter your School Name.'; return render(); }
   if (!f.subject.trim()) { state.authError = isAdmin ? 'Please enter your designation/subject.' : 'Please enter your subject.'; return render(); }
   if (isAdmin && (f.adminCode || '').trim() !== ADMIN_CODE) { state.authError = 'Incorrect admin passcode.'; return render(); }
 
@@ -2975,10 +2972,11 @@ async function handleCreate(){
   try {
     /* Admin approval gate: student sirf tabhi register kar sakta hai jab
        uska serial number admin ne pehle 'validIds' whitelist mein add
-       kiya ho. Class/Course student khud dropdown se choose karta hai —
+       kiya ho. Class student khud dropdown se choose karta hai —
        whitelist sirf ye check karta hai ki serial number allowed hai ya nahi. */
     const studentClass = isAdmin ? '' : (f.klass || '').trim();
     const studentSection = '';
+    const studentSchool = isAdmin ? '' : (f.school || '').trim();
     const studentPassYear = null;
     if (!isAdmin){
       const validDoc = await withStep('validIds-read', () => withTimeout(db.collection('validIds').doc(id).get(), 15000));
@@ -3053,7 +3051,7 @@ async function handleCreate(){
       const photoUrl = await withTimeout(uploadDataUrl(f.photo, 'profile-photos', cred.user.uid), 20000).catch(() => '');
       const newProfile = isAdmin
         ? { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:'Admin', section:'', subject:f.subject.trim(), role:'admin', following:[], followers:[], blocked:[], followRequests:[], verified:true, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' }
-        : { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:studentClass, section:studentSection, passYear:studentPassYear, subject:f.subject.trim(), role:'student', following:[], followers:[], blocked:[], followRequests:[], verified:false, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' };
+        : { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:studentClass, section:studentSection, school:studentSchool, passYear:studentPassYear, subject:f.subject.trim(), role:'student', following:[], followers:[], blocked:[], followRequests:[], verified:false, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' };
       /* Admin account ke liye: asli passcode-check ab Firestore Rules ke
          andar, server par hota hai (adminCodeMatches()) — client wala
          upar ka check (line ~2632) sirf turant UX feedback ke liye hai.
@@ -3254,7 +3252,11 @@ async function handleSaveProfile(){
   const stillLocked = nameChangeDaysLeft(profile) > 0;
   state.profileNameError = '';
   let nameUpdate = {};
-  if (nameChanged && !stillLocked) {
+  if (nameChanged && stillLocked) {
+    /* Usar ne naam badalne ki koshish ki lekin cooldown chal raha hai —
+       ab hi lock wala message dikhana hai, save karne se pehle nahi. */
+    state.profileNameLockAttempted = true;
+  } else if (nameChanged && !stillLocked) {
     const taken = await nameAlreadyTaken(requestedName, state.session);
     if (taken) {
       state.profileNameError = 'This name is already in use in another (student or admin) profile — please try a different name.';
@@ -3710,7 +3712,7 @@ function renderBootError(){
     if (user){
       state.session = idFromEmail(user.email);
       state.tab = 'home';
-      state.authForm = { idCard:'', password:'', name:'', klass:'', section:'A', subject:'', photo:'', role:'student', adminCode:'' };
+      state.authForm = { idCard:'', password:'', name:'', klass:'', section:'A', school:'', subject:'', photo:'', role:'student', adminCode:'' };
       subscribeChatList();
       fetchProfiles();
       fetchFeed();
