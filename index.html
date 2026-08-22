@@ -1,26 +1,31 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
-<title>FC College Network</title>
+<title>SeniorCircle</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --navy:#1B2A4A;
-    --navy-deep:#101A30;
-    --marigold:#E8A33D;
+    --navy:#16244A;
+    --navy-deep:#0E1830;
+    --marigold:#D4A72A;
     --maroon:#7A2E2E;
     --sage:#4F7A5C;
     --paper:#F5F4EF;
     --paper-deep:#ECEAE1;
     --ink:#22293A;
     --ink-soft:#5B6478;
-  }
+  
+    --clay-shadow: 7px 7px 14px rgba(163,177,198,.5), -7px -7px 14px rgba(255,255,255,.9), inset 1px 1px 2px rgba(255,255,255,.6), inset -2px -2px 4px rgba(163,177,198,.18);
+    --clay-shadow-sm: 4px 4px 9px rgba(163,177,198,.5), -4px -4px 9px rgba(255,255,255,.9), inset 1px 1px 1px rgba(255,255,255,.6), inset -1px -1px 2px rgba(163,177,198,.15);
+    --clay-shadow-navy: 6px 6px 14px rgba(16,26,48,.35), -3px -3px 10px rgba(76,114,196,.2), inset 1px 1px 2px rgba(255,255,255,.3), inset -2px -2px 4px rgba(0,0,0,.2);
+    --clay-shadow-press: inset 3px 3px 7px rgba(163,177,198,.55), inset -3px -3px 7px rgba(255,255,255,.85);
+    --clay-shadow-deep: 5px 5px 12px rgba(163,177,198,.55), -5px -5px 12px rgba(255,255,255,.95), inset 1px 1px 2px rgba(255,255,255,.6), inset -1px -1px 2px rgba(163,177,198,.15);}
   /* ---- dark mode ----
      Sirf CSS variables switch hoti hain (poori file same rehti hai),
      aur ye choice sirf is browser ki "local memory" (localStorage) mein
@@ -35,6 +40,11 @@
     --paper-deep:#1B1F29;
     --ink:#EDEEF2;
     --ink-soft:#9BA3B4;
+    --clay-shadow: 7px 7px 14px rgba(0,0,0,.55), -7px -7px 14px rgba(255,255,255,.04), inset 1px 1px 2px rgba(255,255,255,.05), inset -2px -2px 4px rgba(0,0,0,.35);
+    --clay-shadow-sm: 4px 4px 9px rgba(0,0,0,.55), -4px -4px 9px rgba(255,255,255,.04), inset 1px 1px 1px rgba(255,255,255,.05), inset -1px -1px 2px rgba(0,0,0,.3);
+    --clay-shadow-navy: 6px 6px 14px rgba(0,0,0,.5), -3px -3px 10px rgba(76,114,196,.15), inset 1px 1px 2px rgba(255,255,255,.15), inset -2px -2px 4px rgba(0,0,0,.3);
+    --clay-shadow-press: inset 3px 3px 7px rgba(0,0,0,.5), inset -3px -3px 7px rgba(255,255,255,.04);
+    --clay-shadow-deep: 5px 5px 12px rgba(0,0,0,.55), -5px -5px 12px rgba(255,255,255,.04), inset 1px 1px 2px rgba(255,255,255,.05), inset -1px -1px 2px rgba(0,0,0,.3);
   }
   body.dark-theme .card, body.dark-theme .post-card, body.dark-theme .field input,
   body.dark-theme .field select, body.dark-theme .field textarea,
@@ -42,12 +52,11 @@
   body.dark-theme .role-toggle button, body.dark-theme .search-bar,
   body.dark-theme .user-row, body.dark-theme .chat-list-row,
   body.dark-theme .chat-bubble-del, body.dark-theme .chat-attach-btn{
-    background:var(--paper-deep);
+    background:var(--paper);
   }
-  body.dark-theme .role-toggle button{border-color:var(--paper-deep);}
-  body.dark-theme .role-toggle button.active{border-color:var(--navy);background:var(--navy);}
-  body.dark-theme header.topbar{background:rgba(20,24,31,.9);}
-  body.dark-theme nav.bottombar{background:var(--paper-deep);}
+  body.dark-theme .role-toggle button.active{background:var(--navy);}
+  body.dark-theme header.topbar{background:rgba(18,21,28,.9);}
+  body.dark-theme nav.bottombar{background:var(--paper);}
   body.dark-theme .idcard-qr-box svg, body.dark-theme .idcard-qr-box canvas, body.dark-theme .idcard-qr-box img{
     background:#fff;border-radius:8px;
   }
@@ -80,13 +89,13 @@
   .form-panel{flex:1;display:flex;align-items:center;justify-content:center;padding:48px 24px;}
   .form-wrap{width:100%;max-width:420px;}
 
-  .tabbar{display:flex;border-radius:999px;padding:4px;background:var(--paper-deep);margin-bottom:28px;}
+  .tabbar{display:flex;border-radius:999px;padding:5px;background:var(--paper);margin-bottom:28px;box-shadow:var(--clay-shadow-press);}
   .tabbar button{flex:1;padding:10px 0;border-radius:999px;font-size:14px;font-weight:500;color:var(--ink-soft);transition:.15s;}
-  .tabbar button.active{background:var(--navy);color:#fff;}
+  .tabbar button.active{background:var(--navy);color:#fff;box-shadow:var(--clay-shadow-navy);}
 
   .role-toggle{display:flex;gap:8px;margin-bottom:16px;}
-  .role-toggle button{flex:1;padding:9px 0;border-radius:10px;font-size:13px;font-weight:500;border:1px solid var(--paper-deep);color:var(--ink-soft);background:#fff;}
-  .role-toggle button.active{border-color:var(--navy);background:var(--navy);color:#fff;}
+  .role-toggle button{flex:1;padding:9px 0;border-radius:16px;font-size:13px;font-weight:500;border:none;color:var(--ink-soft);background:var(--paper);box-shadow:var(--clay-shadow-sm);}
+  .role-toggle button.active{background:var(--navy);color:#fff;box-shadow:var(--clay-shadow-navy);}
   .whitelist-badge{font-size:9px;font-weight:600;padding:2px 7px;border-radius:999px;flex-shrink:0;}
   .whitelist-badge.used{background:rgba(79,122,92,.15);color:var(--sage);}
   .whitelist-badge.free{background:var(--paper-deep);color:var(--ink-soft);}
@@ -94,23 +103,23 @@
   .field{margin-bottom:16px;}
   .field label{display:block;font-size:12px;font-weight:500;color:var(--ink-soft);margin-bottom:6px;}
   .field input, .field select, .field textarea{
-    width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--paper-deep);background:#fff;color:var(--ink);outline:none;
+    width:100%;padding:12px 14px;border-radius:18px;border:none;background:var(--paper);color:var(--ink);outline:none;box-shadow:var(--clay-shadow-press);
   }
-  .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--navy);}
+  .field input:focus, .field select:focus, .field textarea:focus{box-shadow:var(--clay-shadow-press), 0 0 0 2px var(--navy);}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 
-  .btn-primary{width:100%;padding:13px 0;border-radius:12px;background:var(--navy);color:#fff;font-weight:500;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .btn-primary{width:100%;padding:13px 0;border-radius:20px;background:var(--navy);color:#fff;font-weight:500;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:var(--clay-shadow-navy);}
   .btn-primary:disabled{opacity:.4;cursor:not-allowed;}
-  .btn-ghost{padding:9px 16px;border-radius:10px;background:var(--paper-deep);color:var(--ink);font-size:13px;font-weight:500;}
-  .error-note{font-size:13px;background:#F7E9E9;color:var(--maroon);padding:10px 12px;border-radius:10px;margin-bottom:14px;}
-  .block-note{background:#F7E9E9;border:1px solid var(--maroon);border-radius:12px;padding:14px;display:flex;gap:10px;align-items:flex-start;margin-bottom:14px;color:var(--maroon);font-size:13px;}
+  .btn-ghost{padding:9px 16px;border-radius:16px;background:var(--paper);color:var(--ink);font-size:13px;font-weight:500;box-shadow:var(--clay-shadow-sm);}
+  .error-note{font-size:13px;background:#F7E9E9;color:var(--maroon);padding:10px 12px;border-radius:16px;margin-bottom:14px;box-shadow:var(--clay-shadow-press);}
+  .block-note{background:#F7E9E9;border:none;border-radius:18px;padding:14px;display:flex;gap:10px;align-items:flex-start;margin-bottom:14px;color:var(--maroon);font-size:13px;box-shadow:var(--clay-shadow-press);}
 
   .photo-row{display:flex;align-items:center;gap:12px;}
-  .photo-thumb{width:56px;height:56px;border-radius:10px;overflow:hidden;background:var(--paper-deep);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .photo-thumb{width:56px;height:56px;border-radius:18px;overflow:hidden;background:var(--paper);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--clay-shadow-sm);}
   .photo-thumb img{width:100%;height:100%;object-fit:cover;}
 
   /* ---- ID card ---- */
-  .idcard{position:relative;border-radius:18px;overflow:hidden;font-family:'IBM Plex Mono',monospace;box-shadow:0 12px 30px rgba(0,0,0,.25);}
+  .idcard{position:relative;border-radius:26px;overflow:hidden;font-family:'IBM Plex Mono',monospace;box-shadow:10px 12px 26px rgba(0,0,0,.3), -6px -6px 18px rgba(255,255,255,.08);}
   .idcard.compact{width:220px;}
   .idcard.full{width:280px;}
   .idcard::before{content:"";position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:40px;height:12px;border-radius:999px;background:var(--paper-deep);}
@@ -118,7 +127,7 @@
   .idcard-brand{font-size:9px;letter-spacing:.2em;color:var(--marigold);}
   .idcard-sub{font-size:8px;letter-spacing:.05em;color:#C9D0E0;margin-top:2px;}
   .idcard-body{padding:0 16px;display:flex;gap:12px;align-items:center;}
-  .idcard-photo{width:64px;height:64px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#2B3B5E;border:2px solid var(--marigold);display:flex;align-items:center;justify-content:center;}
+  .idcard-photo{width:64px;height:64px;border-radius:16px;overflow:hidden;flex-shrink:0;background:#2B3B5E;border:2px solid var(--marigold);display:flex;align-items:center;justify-content:center;}
   .idcard-photo img{width:100%;height:100%;object-fit:cover;}
   .idcard-name{color:#fff;font-family:'Zilla Slab',serif;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .idcard-meta{font-size:10px;color:#C9D0E0;margin-top:2px;}
@@ -129,46 +138,46 @@
 
   /* ---- app shell ---- */
   #app-shell{max-width:640px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
-  header.topbar{position:sticky;top:0;z-index:10;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(245,244,239,.9);backdrop-filter:blur(6px);border-bottom:1px solid var(--paper-deep);}
+  header.topbar{position:sticky;top:0;z-index:10;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(245,244,239,.9);backdrop-filter:blur(6px);border-bottom:none;box-shadow:0 6px 16px rgba(163,177,198,.35);}
   .topbar-brand{display:flex;align-items:center;gap:8px;font-family:'Zilla Slab',serif;font-weight:600;font-size:14px;color:var(--navy);}
-  .logout-btn{font-size:12px;display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;background:var(--paper-deep);color:var(--ink-soft);}
+  .logout-btn{font-size:12px;display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;background:var(--paper);color:var(--ink-soft);box-shadow:var(--clay-shadow-sm);}
 
   main{flex:1;padding:20px 16px;}
-  nav.bottombar{position:sticky;bottom:0;display:flex;justify-content:space-around;padding:8px 0;background:#fff;border-top:1px solid var(--paper-deep);}
+  nav.bottombar{position:sticky;bottom:0;display:flex;justify-content:space-around;padding:8px 0;background:var(--paper);border-top:none;box-shadow:0 -6px 16px rgba(163,177,198,.3);}
   .nav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;flex:1;color:var(--ink-soft);}
   .nav-btn.active{color:var(--navy);}
   .nav-btn span{font-size:10px;font-weight:500;}
-  .nav-badge{position:absolute;top:-6px;right:-8px;background:var(--maroon,#b3261e);color:#fff;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1;}
+  .nav-badge{position:absolute;top:-6px;right:-8px;background:var(--maroon,#b3261e);color:#fff;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1;box-shadow:2px 2px 5px rgba(0,0,0,.25);}
   .unread-dot{width:9px;height:9px;border-radius:50%;background:var(--maroon,#b3261e);flex-shrink:0;}
 
   /* composer + feed */
-  .card{border-radius:16px;background:#fff;border:1px solid var(--paper-deep);padding:16px;}
+  .card{border-radius:24px;background:var(--paper);border:none;padding:16px;box-shadow:var(--clay-shadow);}
   .composer{display:flex;gap:12px;}
-  .avatar{border-radius:999px;overflow:hidden;background:var(--paper-deep);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .avatar{border-radius:999px;overflow:hidden;background:var(--paper);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--clay-shadow-sm);}
   .avatar img{width:100%;height:100%;object-fit:cover;}
   .composer-body{flex:1;}
   .composer textarea{width:100%;border:none;outline:none;resize:none;font-size:14px;color:var(--ink);background:transparent;}
   .composer-preview{position:relative;display:inline-block;margin-top:8px;}
-  .composer-preview img{border-radius:10px;max-height:160px;object-fit:cover;}
-  .composer-preview button{position:absolute;top:-8px;right:-8px;background:#fff;border-radius:999px;padding:4px;box-shadow:0 2px 6px rgba(0,0,0,.2);}
+  .composer-preview img{border-radius:16px;max-height:160px;object-fit:cover;}
+  .composer-preview button{position:absolute;top:-8px;right:-8px;background:var(--paper);border-radius:999px;padding:4px;box-shadow:var(--clay-shadow-sm);}
   .composer-actions{display:flex;align-items:center;justify-content:space-between;margin-top:10px;}
-  .photo-btn{font-size:12px;display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;background:var(--paper-deep);color:var(--ink-soft);}
-  .post-btn{font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px;padding:9px 16px;border-radius:8px;background:var(--navy);color:#fff;}
+  .photo-btn{font-size:12px;display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:14px;background:var(--paper);color:var(--ink-soft);box-shadow:var(--clay-shadow-sm);}
+  .post-btn{font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px;padding:9px 16px;border-radius:14px;background:var(--navy);color:#fff;box-shadow:var(--clay-shadow-navy);}
 
   .filter-row{display:flex;gap:8px;margin:16px 0;}
-  .filter-chip{font-size:12px;font-weight:500;padding:7px 14px;border-radius:999px;background:var(--paper-deep);color:var(--ink-soft);}
-  .filter-chip.active{background:var(--navy);color:#fff;}
+  .filter-chip{font-size:12px;font-weight:500;padding:7px 14px;border-radius:999px;background:var(--paper);color:var(--ink-soft);box-shadow:var(--clay-shadow-sm);}
+  .filter-chip.active{background:var(--navy);color:#fff;box-shadow:var(--clay-shadow-navy);}
 
   .empty-state{text-align:center;padding:60px 0;font-size:14px;color:var(--ink-soft);}
-  .post-card{border-radius:16px;background:#fff;border:1px solid var(--paper-deep);padding:16px;margin-bottom:12px;}
+  .post-card{border-radius:24px;background:var(--paper);border:none;padding:16px;margin-bottom:12px;box-shadow:var(--clay-shadow);}
   .post-head{display:flex;align-items:center;gap:10px;}
   .post-headtext{flex:1;min-width:0;}
   .post-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .post-meta{font-size:11px;color:var(--ink-soft);}
-  .section-pill{font-size:10px;font-weight:500;color:#fff;padding:2px 8px;border-radius:999px;flex-shrink:0;}
+  .section-pill{font-size:10px;font-weight:500;color:#fff;padding:2px 8px;border-radius:999px;flex-shrink:0;box-shadow:1px 1px 4px rgba(0,0,0,.2);}
   .post-text{font-size:14px;margin-top:10px;white-space:pre-wrap;}
-  .post-image{border-radius:10px;margin-top:10px;width:100%;object-fit:cover;max-height:280px;}
-  .data-saver-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--paper-deep);border:1px dashed var(--ink-soft);border-radius:10px;color:var(--ink-soft);font-size:11.5px;cursor:pointer;width:100%;height:120px;margin-top:10px;}
+  .post-image{border-radius:18px;margin-top:10px;width:100%;object-fit:cover;max-height:280px;}
+  .data-saver-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--paper);border:1px dashed var(--ink-soft);border-radius:18px;color:var(--ink-soft);font-size:11.5px;cursor:pointer;width:100%;height:120px;margin-top:10px;box-shadow:var(--clay-shadow-press);}
   .chat-bubble-img.data-saver-placeholder{max-width:180px;height:100px;margin-top:0;}
   .like-btn{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;color:var(--ink-soft);}
   .like-btn.liked{color:var(--maroon);}
@@ -177,16 +186,16 @@
   .profile-card-wrap{display:flex;justify-content:center;margin-bottom:20px;}
   .profile-note{font-size:12px;color:var(--ink-soft);margin-bottom:14px;}
   .chip-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:14px 0;text-align:center;}
-  .chip{border-radius:12px;padding:10px 0;background:var(--paper-deep);}
+  .chip{border-radius:18px;padding:10px 0;background:var(--paper);box-shadow:var(--clay-shadow-sm);}
   .chip-label{font-size:10px;color:var(--ink-soft);}
   .chip-value{font-size:14px;font-weight:600;}
 
   .loading-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:13px;}
 
   /* ---- search / discover ---- */
-  .search-bar{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--paper-deep);border-radius:12px;padding:10px 14px;margin-bottom:16px;color:var(--ink-soft);}
+  .search-bar{display:flex;align-items:center;gap:8px;background:var(--paper);border:none;border-bottom:1px solid rgba(163,177,198,.45);border-radius:18px;padding:10px 14px;margin-bottom:16px;color:var(--ink-soft);box-shadow:var(--clay-shadow-press);}
   .search-bar input{flex:1;border:none;outline:none;background:transparent;color:var(--ink);}
-  .user-row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--paper-deep);border-radius:14px;padding:12px;margin-bottom:10px;}
+  .user-row{display:flex;align-items:center;gap:12px;background:var(--paper);border:none;border-radius:20px;padding:12px;margin-bottom:10px;box-shadow:var(--clay-shadow-sm);}
   .user-row-info{flex:1;min-width:0;}
   .user-row-name{display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;}
   .user-row-meta{font-size:11px;color:var(--ink-soft);margin-top:2px;}
@@ -195,33 +204,33 @@
   .verified-badge{display:inline-flex;flex-shrink:0;}
 
   /* ---- follow / block buttons ---- */
-  .follow-btn{font-size:12px;font-weight:500;padding:8px 14px;border-radius:8px;background:var(--navy);color:#fff;display:flex;align-items:center;gap:5px;flex-shrink:0;}
-  .follow-btn.following{background:var(--paper-deep);color:var(--ink);}
-  .follow-btn.requested{background:var(--paper-deep);color:var(--ink-soft);}
+  .follow-btn{font-size:12px;font-weight:500;padding:8px 14px;border-radius:14px;background:var(--navy);color:#fff;display:flex;align-items:center;gap:5px;flex-shrink:0;box-shadow:var(--clay-shadow-navy);}
+  .follow-btn.following{background:var(--paper);color:var(--ink);box-shadow:var(--clay-shadow-sm);}
+  .follow-btn.requested{background:var(--paper);color:var(--ink-soft);box-shadow:var(--clay-shadow-sm);}
   .request-row-actions{display:flex;gap:8px;flex-shrink:0;}
   .request-row-actions .follow-btn, .request-row-actions .block-btn{padding:8px 12px;}
-  .msg-btn{font-size:12px;font-weight:500;padding:8px 12px;border-radius:8px;background:var(--paper-deep);color:var(--ink);display:flex;align-items:center;gap:5px;flex-shrink:0;}
-  .block-btn{font-size:12px;font-weight:500;padding:8px 12px;border-radius:8px;background:#F7E9E9;color:var(--maroon);display:flex;align-items:center;gap:5px;flex-shrink:0;}
+  .msg-btn{font-size:12px;font-weight:500;padding:8px 12px;border-radius:14px;background:var(--paper);color:var(--ink);display:flex;align-items:center;gap:5px;flex-shrink:0;box-shadow:var(--clay-shadow-sm);}
+  .block-btn{font-size:12px;font-weight:500;padding:8px 12px;border-radius:14px;background:#F7E9E9;color:var(--maroon);display:flex;align-items:center;gap:5px;flex-shrink:0;box-shadow:var(--clay-shadow-sm);}
 
   /* ---- profile view page ---- */
   .back-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-  .back-btn{padding:8px;border-radius:999px;background:var(--paper-deep);color:var(--ink);flex-shrink:0;display:flex;}
+  .back-btn{padding:8px;border-radius:999px;background:var(--paper);color:var(--ink);flex-shrink:0;display:flex;box-shadow:var(--clay-shadow-sm);}
   .stat-row{display:flex;gap:10px;margin:14px 0;}
-  .stat-box{flex:1;text-align:center;background:var(--paper-deep);border-radius:12px;padding:10px 0;}
+  .stat-box{flex:1;text-align:center;background:var(--paper);border-radius:18px;padding:10px 0;box-shadow:var(--clay-shadow-sm);}
   .stat-num{font-size:16px;font-weight:600;}
   .stat-label{font-size:10px;color:var(--ink-soft);}
   .action-row{display:flex;gap:8px;margin-top:14px;}
   .action-row .follow-btn, .action-row .msg-btn, .action-row .block-btn{flex:1;justify-content:center;}
-  .blocked-note{text-align:center;font-size:12px;color:var(--maroon);background:#F7E9E9;padding:10px;border-radius:10px;margin-top:10px;}
+  .blocked-note{text-align:center;font-size:12px;color:var(--maroon);background:#F7E9E9;padding:10px;border-radius:16px;margin-top:10px;box-shadow:var(--clay-shadow-press);}
 
   /* ---- blue tick verification box ---- */
-  .verify-box{border:1px dashed #C9BFA0;border-radius:12px;padding:14px;margin:16px 0;}
+  .verify-box{border:1px dashed #C9BFA0;border-radius:18px;padding:14px;margin:16px 0;box-shadow:var(--clay-shadow-press);}
   .verify-status{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;margin-bottom:10px;color:var(--ink-soft);}
   .verify-status.on{color:var(--navy);}
   .verify-hint{font-size:11px;color:var(--ink-soft);margin-top:8px;line-height:1.4;}
 
   /* ---- chat ---- */
-  .chat-list-row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--paper-deep);border-radius:14px;padding:12px;margin-bottom:10px;}
+  .chat-list-row{display:flex;align-items:center;gap:12px;background:var(--paper);border:none;border-radius:20px;padding:12px;margin-bottom:10px;box-shadow:var(--clay-shadow-sm);}
   .chat-list-text{flex:1;min-width:0;}
   .chat-list-name{display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;}
   .chat-list-preview{font-size:12px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
@@ -230,29 +239,29 @@
   .chat-thread{display:flex;flex-direction:column;height:calc(100vh - 200px);min-height:320px;}
   .chat-thread-head{display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--paper-deep);margin-bottom:12px;}
   .chat-messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px;}
-  .chat-bubble{max-width:75%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.4;position:relative;}
-  .chat-bubble.mine{align-self:flex-end;background:var(--navy);color:#fff;border-bottom-right-radius:4px;}
-  .chat-bubble.theirs{align-self:flex-start;background:var(--paper-deep);color:var(--ink);border-bottom-left-radius:4px;}
+  .chat-bubble{max-width:75%;padding:9px 13px;border-radius:20px;font-size:13px;line-height:1.4;position:relative;}
+  .chat-bubble.mine{align-self:flex-end;background:var(--navy);color:#fff;border-bottom-right-radius:6px;box-shadow:var(--clay-shadow-navy);}
+  .chat-bubble.theirs{align-self:flex-start;background:var(--paper);color:var(--ink);border-bottom-left-radius:6px;box-shadow:var(--clay-shadow-sm);}
   .chat-bubble-time{font-size:9px;opacity:.65;margin-top:4px;display:block;}
-  .chat-bubble-del{position:absolute;top:-10px;right:-8px;width:22px;height:22px;border-radius:50%;border:1px solid var(--paper-deep);background:#fff;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;opacity:0;transition:opacity .15s;}
+  .chat-bubble-del{position:absolute;top:-10px;right:-8px;width:22px;height:22px;border-radius:50%;border:none;background:var(--paper);color:var(--ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;opacity:0;transition:opacity .15s;box-shadow:var(--clay-shadow-sm);}
   .chat-bubble-del svg{width:12px;height:12px;}
   .chat-bubble.mine:hover .chat-bubble-del,.chat-bubble.mine:focus-within .chat-bubble-del{opacity:1;}
   @media (hover:none){ .chat-bubble-del{opacity:1;} }
   .chat-input-row{display:flex;gap:8px;margin-top:12px;flex-shrink:0;align-items:center;}
-  .chat-input-row input{flex:1;padding:11px 14px;border-radius:999px;border:1px solid var(--paper-deep);outline:none;}
-  .chat-attach-btn{flex-shrink:0;width:38px;height:38px;border-radius:50%;border:1px solid var(--paper-deep);background:#fff;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .chat-input-row input{flex:1;padding:11px 14px;border-radius:999px;border:none;outline:none;box-shadow:var(--clay-shadow-press);}
+  .chat-attach-btn{flex-shrink:0;width:38px;height:38px;border-radius:50%;border:none;background:var(--paper);color:var(--ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--clay-shadow-sm);}
   .chat-attach-btn:disabled{opacity:.5;}
-  .chat-bubble-img{max-width:180px;max-height:220px;border-radius:12px;display:block;margin-bottom:4px;}
+  .chat-bubble-img{max-width:180px;max-height:220px;border-radius:16px;display:block;margin-bottom:4px;}
   .chat-bubble.has-attachment{padding:6px;}
-  .chat-file-card{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.5);border-radius:10px;padding:8px 10px;text-decoration:none;color:inherit;font-size:12.5px;max-width:200px;}
+  .chat-file-card{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.5);border-radius:16px;padding:8px 10px;text-decoration:none;color:inherit;font-size:12.5px;max-width:200px;}
   .chat-bubble.mine .chat-file-card{background:rgba(255,255,255,0.2);}
   .chat-file-card span{word-break:break-word;}
-  .chat-send-btn{width:42px;height:42px;border-radius:999px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .chat-send-btn{width:42px;height:42px;border-radius:999px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--clay-shadow-navy);}
 
   /* ---- Tools tab ----
      Neeche ke saare tools (calculator, timer, countdown, QR, notes)
      purely client-side hain — koi Firestore read/write nahi karte. */
-  .theme-toggle-btn{width:34px;height:34px;border-radius:999px;background:var(--paper-deep);color:var(--ink-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .theme-toggle-btn{width:34px;height:34px;border-radius:999px;background:var(--paper);color:var(--ink-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--clay-shadow-sm);}
   .settings-row{display:flex;align-items:center;justify-content:space-between;gap:14px;}
   .settings-row-title{font-size:13.5px;font-weight:600;}
   .settings-row-desc{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
@@ -262,69 +271,75 @@
   .settings-chevron.open{transform:rotate(90deg);}
   .switch{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0;}
   .switch input{opacity:0;width:0;height:0;}
-  .switch-track{position:absolute;cursor:pointer;inset:0;background:var(--paper-deep);border-radius:999px;transition:.15s;}
-  .switch-track::before{content:"";position:absolute;height:18px;width:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+  .switch-track{position:absolute;cursor:pointer;inset:0;background:var(--paper);border-radius:999px;transition:.15s;box-shadow:var(--clay-shadow-press);}
+  .switch-track::before{content:"";position:absolute;height:18px;width:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s;box-shadow:1px 1px 3px rgba(0,0,0,.3), -1px -1px 2px rgba(255,255,255,.6);}
   .switch input:checked + .switch-track{background:var(--navy);}
   .switch input:checked + .switch-track::before{transform:translateX(18px);}
-  .quote-card{border-radius:16px;background:linear-gradient(135deg,var(--navy-deep),var(--navy));padding:16px 18px;color:#fff;margin-bottom:16px;}
+  .quote-card{border-radius:24px;background:linear-gradient(135deg,var(--navy-deep),var(--navy));padding:16px 18px;color:#fff;margin-bottom:16px;box-shadow:var(--clay-shadow-navy);}
   .quote-card .quote-text{font-family:'Zilla Slab',serif;font-size:15px;line-height:1.5;}
   .quote-card .quote-tag{font-size:10px;color:var(--marigold);letter-spacing:.1em;margin-bottom:6px;}
   .tool-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;-ms-overflow-style:none;scrollbar-width:none;}
   .tool-tabs::-webkit-scrollbar{display:none;}
-  .tool-tabs button{flex-shrink:0;font-size:12px;font-weight:500;padding:8px 14px;border-radius:999px;background:var(--paper-deep);color:var(--ink-soft);white-space:nowrap;}
-  .tool-tabs button.active{background:var(--navy);color:#fff;}
-  .tool-card{border-radius:16px;background:#fff;border:1px solid var(--paper-deep);padding:18px;margin-bottom:14px;}
+  .tool-tabs button{flex-shrink:0;font-size:12px;font-weight:500;padding:8px 14px;border-radius:999px;background:var(--paper);color:var(--ink-soft);white-space:nowrap;box-shadow:var(--clay-shadow-sm);}
+  .tool-tabs button.active{background:var(--navy);color:#fff;box-shadow:var(--clay-shadow-navy);}
+  .tool-card{border-radius:24px;background:var(--paper);border:none;padding:18px;margin-bottom:14px;box-shadow:var(--clay-shadow);}
   .tool-card-title{font-family:'Zilla Slab',serif;font-weight:600;font-size:15px;margin-bottom:4px;display:flex;align-items:center;gap:6px;}
   .tool-card-sub{font-size:12px;color:var(--ink-soft);margin-bottom:14px;}
-  .tool-result{border-radius:12px;background:var(--paper-deep);padding:14px;text-align:center;margin-top:12px;}
+  .tool-result{border-radius:18px;background:var(--paper);padding:14px;text-align:center;margin-top:12px;box-shadow:var(--clay-shadow-press);}
   .tool-result-num{font-family:'Zilla Slab',serif;font-size:26px;font-weight:600;color:var(--navy);}
   .tool-result-label{font-size:11px;color:var(--ink-soft);margin-top:2px;}
-  .seg-toggle{display:flex;border-radius:10px;padding:3px;background:var(--paper-deep);margin-bottom:14px;}
-  .seg-toggle button{flex:1;padding:8px 0;border-radius:8px;font-size:12px;font-weight:500;color:var(--ink-soft);}
-  .seg-toggle button.active{background:var(--navy);color:#fff;}
+  .seg-toggle{display:flex;border-radius:16px;padding:4px;background:var(--paper);margin-bottom:14px;box-shadow:var(--clay-shadow-press);}
+  .seg-toggle button{flex:1;padding:8px 0;border-radius:12px;font-size:12px;font-weight:500;color:var(--ink-soft);}
+  .seg-toggle button.active{background:var(--navy);color:#fff;box-shadow:var(--clay-shadow-navy);}
   .timer-display{font-family:'IBM Plex Mono',monospace;font-size:46px;font-weight:500;text-align:center;color:var(--navy);letter-spacing:.03em;margin:10px 0;}
   .timer-mode-label{text-align:center;font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--ink-soft);text-transform:uppercase;}
   .timer-btn-row{display:flex;gap:10px;margin-top:14px;}
-  .timer-btn-row button{flex:1;padding:11px 0;border-radius:12px;font-size:13px;font-weight:500;}
-  .timer-btn-row .btn-start{background:var(--navy);color:#fff;}
-  .timer-btn-row .btn-reset{background:var(--paper-deep);color:var(--ink);}
+  .timer-btn-row button{flex:1;padding:11px 0;border-radius:18px;font-size:13px;font-weight:500;}
+  .timer-btn-row .btn-start{background:var(--navy);color:#fff;box-shadow:var(--clay-shadow-navy);}
+  .timer-btn-row .btn-reset{background:var(--paper);color:var(--ink);box-shadow:var(--clay-shadow-sm);}
   .countdown-num{font-family:'Zilla Slab',serif;font-size:52px;font-weight:700;text-align:center;color:var(--maroon);}
   .countdown-label{text-align:center;font-size:13px;color:var(--ink-soft);margin-top:2px;}
-  .idcard-qr-box{background:#fff;border-radius:14px;padding:16px;display:flex;justify-content:center;margin:14px 0;}
+  .idcard-qr-box{background:var(--paper);border-radius:20px;padding:16px;display:flex;justify-content:center;margin:14px 0;box-shadow:var(--clay-shadow-sm);}
   .note-item{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--paper-deep);}
   .note-item:last-child{border-bottom:none;}
-  .note-check{width:20px;height:20px;border-radius:6px;border:2px solid var(--ink-soft);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;}
+  .note-check{width:20px;height:20px;border-radius:8px;border:2px solid var(--ink-soft);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;}
   .note-check.done{background:var(--sage);border-color:var(--sage);}
   .note-item-text{flex:1;font-size:13px;word-break:break-word;}
   .note-item-text.done{text-decoration:line-through;color:var(--ink-soft);}
   .note-del{color:var(--ink-soft);flex-shrink:0;}
   .note-add-row{display:flex;gap:8px;margin-top:12px;}
   .note-add-row input{flex:1;}
-  .note-add-row button{width:44px;height:44px;border-radius:12px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .note-add-row button{width:44px;height:44px;border-radius:18px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--clay-shadow-navy);}
+  .flashcard-viewer{min-height:140px;border-radius:20px;background:var(--paper);border:none;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;cursor:pointer;margin-top:10px;box-shadow:var(--clay-shadow-press);}
+  .flashcard-face{font-size:16px;font-weight:600;word-break:break-word;}
+  .flashcard-nav{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:10px;}
+  .flashcard-nav button{width:36px;height:36px;border-radius:14px;background:var(--paper);border:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ink);box-shadow:var(--clay-shadow-sm);}
+  .flashcard-add-row{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+  .flashcard-add-row input{width:100%;}
 
   /* ---- naye 10 tools ki CSS ---- */
   .periodic-grid{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;max-height:320px;overflow-y:auto;}
-  .periodic-tile{width:46px;height:46px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#1a1a1a;flex-shrink:0;transition:.1s;}
+  .periodic-tile{width:46px;height:46px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#1a1a1a;flex-shrink:0;transition:.1s;box-shadow:2px 2px 5px rgba(0,0,0,.15), -1px -1px 3px rgba(255,255,255,.3);}
   .periodic-tile-num{font-size:8px;opacity:.7;line-height:1;}
   .periodic-tile-sym{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:13px;line-height:1.2;}
-  .periodic-tile-lg{width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:18px;color:#1a1a1a;flex-shrink:0;}
+  .periodic-tile-lg{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:18px;color:#1a1a1a;flex-shrink:0;box-shadow:2px 2px 6px rgba(0,0,0,.15), -1px -1px 3px rgba(255,255,255,.3);}
   .formula-list{margin-top:6px;}
   .formula-item{padding:11px 4px;border-bottom:1px solid var(--paper-deep);}
   .formula-item:last-child{border-bottom:none;}
   .formula-title{font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:3px;}
   .formula-eq{font-family:'IBM Plex Mono',monospace;font-size:14px;}
   .wc-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
-  .wc-stat{border-radius:12px;background:var(--paper-deep);padding:12px;text-align:center;}
+  .wc-stat{border-radius:18px;background:var(--paper);padding:12px;text-align:center;box-shadow:var(--clay-shadow-sm);}
   .wc-stat-num{font-family:'Zilla Slab',serif;font-size:22px;font-weight:600;color:var(--navy);}
   .wc-stat-label{font-size:11px;color:var(--ink-soft);margin-top:2px;}
-  .typing-sample{font-family:'IBM Plex Mono',monospace;font-size:14px;line-height:1.7;background:var(--paper-deep);border-radius:12px;padding:14px;margin-bottom:12px;letter-spacing:.01em;}
+  .typing-sample{font-family:'IBM Plex Mono',monospace;font-size:14px;line-height:1.7;background:var(--paper);border-radius:18px;padding:14px;margin-bottom:12px;letter-spacing:.01em;box-shadow:var(--clay-shadow-press);}
   .typing-sample span.ok{color:var(--sage);}
   .typing-sample span.bad{color:var(--maroon);text-decoration:underline;}
 </style>
 </head>
 <body>
 
-<div id="loading" class="loading-screen">FC College Network load ho raha hai…</div>
+<div id="loading" class="loading-screen">SeniorCircle is loading…</div>
 <div id="root" class="hidden"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.13.0/firebase-app-compat.min.js"></script>
@@ -379,7 +394,7 @@ const ADMIN_CODE = 'FFC-STAFF-2026';
    jo already registered hain unko koi farak nahi padta, wo hamesha
    ki tarah login karte rahenge. Limit badalni ho to bas neeche wala
    number badal dijiye. */
-const MAX_TOTAL_USERS = 800;
+const MAX_TOTAL_USERS = 200;
 
 /* ===== Passing-year auto account close (Part 1 — free, bina card ke) =====
    Sirf Class 12 (final year) students ke liye admin whitelist mein
@@ -507,18 +522,18 @@ function idFromEmail(email){ return (email || '').split('@')[0].toUpperCase(); }
 function firebaseErrorMessage(err){
   const code = err && err.code || '';
   const map = {
-    'auth/invalid-credential': 'ID card ya password galat hai.',
-    'auth/wrong-password': 'Password galat hai.',
-    'auth/user-not-found': 'Yeh ID card register nahi hai. Naya ID card banaayein.',
-    'auth/email-already-in-use': 'Yeh ID card pehle se registered hai. Login karein.',
-    'auth/weak-password': 'Password kam se kam 6 character ka hona chahiye.',
-    'auth/too-many-requests': 'Bahut zyada attempts ho gaye. Thodi der baad try karein.',
-    'auth/network-request-failed': 'Network problem. Internet check karein.',
-    'auth/unauthorized-domain': 'Yeh website domain Firebase mein authorize nahi hai. Firebase Console → Authentication → Settings → Authorized domains mein isse add karein.',
-    'auth/operation-not-allowed': 'Firebase Console mein Email/Password sign-in method enable nahi hai. Authentication → Sign-in method mein ise enable karein.',
-    'permission-denied': 'Firestore permission error. Firebase Console → Firestore → Rules check karein.',
-    'auth/configuration-not-found': 'Firebase Console mein Authentication set up nahi hai. Authentication → Get Started → Sign-in method mein Email/Password enable karein.',
-    'timeout': 'Internet slow hai ya server se response nahi mil raha. Connection check karke dobara try karein.',
+    'auth/invalid-credential': 'ID card or password is incorrect.',
+    'auth/wrong-password': 'Password is incorrect.',
+    'auth/user-not-found': 'This ID card is not registered. Create a new ID card.',
+    'auth/email-already-in-use': 'This ID card is already registered. Please log in.',
+    'auth/weak-password': 'Password must be at least 6 characters long.',
+    'auth/too-many-requests': 'Too many attempts. Please try again in a little while.',
+    'auth/network-request-failed': 'Network problem. Please check your internet connection.',
+    'auth/unauthorized-domain': 'This website domain is not authorized in Firebase. Add it under Firebase Console → Authentication → Settings → Authorized domains.',
+    'auth/operation-not-allowed': 'The Email/Password sign-in method is not enabled in Firebase Console. Enable it under Authentication → Sign-in method.',
+    'permission-denied': 'Firestore permission error. Check Firebase Console → Firestore → Rules.',
+    'auth/configuration-not-found': 'Authentication is not set up in Firebase Console. Enable Email/Password under Authentication → Get Started → Sign-in method.',
+    'timeout': 'Internet is slow or there is no response from the server. Check your connection and try again.',
   };
   /* Diagnostic step-tag — jab kisi Firestore call ko withStep() se tag
      kiya gaya ho, uska naam error message ke aakhir mein dikha dete hain
@@ -528,7 +543,7 @@ function firebaseErrorMessage(err){
   const stepTag = err && err.step ? ` [step: ${err.step}]` : '';
   if (map[code]) return map[code] + stepTag;
   const detail = code || (err && err.message) || 'unknown';
-  return `Kuch galat ho gaya (${detail}). Dobara try karein.${stepTag}`;
+  return `Something went wrong (${detail}). Please try again.${stepTag}`;
 }
 
 /* Kisi Firestore/Auth call ko ek naam ("step") ke saath tag karta hai,
@@ -623,13 +638,13 @@ async function fetchProfiles(){
     if (state.session && mine && mine.role === 'student' && isPassYearExpired(mine.passYear)){
       try { await db.collection('profiles').doc(state.session).delete(); } catch(e){}
       await auth.signOut();
-      state.authError = 'Aapka passing year complete ho chuka hai, isliye account automatically band ho gaya hai. Naya session shuru karne ke liye dobara Sign Up karein.';
+      state.authError = 'Your passing year is complete, so your account has been closed automatically. Please Sign Up again to start a new session.';
       return render();
     }
     if (state.session && !next[state.session]){
       if (signupInFlight) { render(); return; }
       await auth.signOut();
-      state.authError = 'Aapka account nahi mila (delete ho gaya hai ya reset hua hai). Dobara Sign Up karein.';
+      state.authError = 'Your account was not found (it may have been deleted or reset). Please Sign Up again.';
       return render();
     }
     if (state.session && mine && mine.role === 'student'){
@@ -710,7 +725,7 @@ async function fetchValidIds(){
    hataye. */
 function startBackgroundRefresh(){
   stopBackgroundRefresh();
-  profilesRefreshTimer = setInterval(fetchProfiles, 180000);
+  profilesRefreshTimer = setInterval(fetchProfiles, 600000);
   feedRefreshTimer = setInterval(fetchFeed, 180000);
 }
 function stopBackgroundRefresh(){
@@ -826,7 +841,7 @@ function imgHtml(url, cls, alt){
   if (!state.dataSaver || state.loadedImages.has(url)){
     return `<img class="${cls}" src="${url}" alt="${alt||''}" />`;
   }
-  return `<button type="button" class="${cls} data-saver-placeholder" data-act="load-image" data-url="${esc(url)}">${svgIcon('camera')}<span>Photo dekhne ke liye tap karein</span></button>`;
+  return `<button type="button" class="${cls} data-saver-placeholder" data-act="load-image" data-url="${esc(url)}">${svgIcon('camera')}<span>Tap to view photo</span></button>`;
 }
 
 function resizeImage(file, maxDim){
@@ -878,7 +893,7 @@ async function uploadDataUrl(dataUrl, folder, uid, resourceType){
 
 function timeAgo(ts){
   const s = Math.floor((Date.now() - ts) / 1000);
-  if (s < 60) return 'abhi';
+  if (s < 60) return 'just now';
   const m = Math.floor(s / 60);
   if (m < 60) return m + 'm pehle';
   const h = Math.floor(m / 60);
@@ -913,26 +928,26 @@ function idCardHTML(profile, size){
   const color = isAdmin ? 'var(--maroon)' : (SECTION_COLOR[profile.section] || 'var(--navy)');
   const bars = Array.from({length:14}).map((_,i)=>`<span style="height:${i%3===0?12:8}px"></span>`).join('');
   const metaLine = isAdmin
-    ? `<div class="idcard-meta">Staff · ${esc(profile.subject) || '—'}</div>`
-    : `<div class="idcard-meta">Class ${esc(profile.class) || '—'} · Sec ${esc(profile.section) || '—'}</div><div class="idcard-meta">${esc(profile.subject) || '—'}</div>`;
+    ? `<div class="idcard-meta">Admin · ${esc(profile.subject) || '—'}</div>`
+    : `<div class="idcard-meta">${esc(profile.class) || '—'}${profile.section ? ' · Sec ' + esc(profile.section) : ''}</div><div class="idcard-meta">${esc(profile.subject) || '—'}</div>`;
   return `
   <div class="idcard ${size}" style="background:linear-gradient(155deg, var(--navy-deep) 0%, ${color} 130%)">
     <div class="idcard-head">
       <div>
-        <div class="idcard-brand">FC COLLEGE NETWORK</div>
-        <div class="idcard-sub">${isAdmin ? 'STAFF IDENTITY' : 'STUDENT IDENTITY'}</div>
+        <div class="idcard-brand">SENIORCIRCLE</div>
+        <div class="idcard-sub">${isAdmin ? 'ADMIN IDENTITY' : 'MEMBER IDENTITY'}</div>
       </div>
       ${svgIcon('cap').replace('currentColor','var(--marigold)')}
     </div>
     <div class="idcard-body">
       <div class="idcard-photo">${profile.photo ? `<img src="${profile.photo}" alt=""/>` : svgIcon('user').replace('currentColor','#8A93AC')}</div>
       <div style="min-width:0">
-        <div class="idcard-name" style="display:flex;align-items:center;gap:4px;overflow:hidden"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(profile.name) || 'Naya Student'}</span>${verifiedBadge(profile)}</div>
+        <div class="idcard-name" style="display:flex;align-items:center;gap:4px;overflow:hidden"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(profile.name) || 'New Member'}</span>${verifiedBadge(profile)}</div>
         ${metaLine}
       </div>
     </div>
     <div class="idcard-strip">
-      <span class="idcard-id">ID · ${esc(profile.idCard) || '----'}</span>
+      <span class="idcard-id">Serial · ${esc(profile.idCard) || '----'}</span>
       <div class="idcard-bars">${bars}</div>
     </div>
   </div>`;
@@ -943,16 +958,16 @@ function idCardHTML(profile, size){
 /* Roz ek fixed list se ek quote pick hoti hai (saal ke din ke hisaab se),
    isliye har din same quote dikhti hai lekin kabhi database read nahi hoti. */
 const DAILY_QUOTES = [
-  { text: 'Chhota progress bhi progress hai — roz thoda karo, bas rukna mat.', tag: 'AAJ KA THOUGHT' },
-  { text: 'Jo aaj mushkil lagta hai, wahi kal ki sabse badi strength banta hai.', tag: 'AAJ KA THOUGHT' },
-  { text: 'Marks se zyada zaroori hai — roz thoda seekhna.', tag: 'AAJ KA THOUGHT' },
-  { text: 'Discipline wahi hota hai jab motivation chala jaaye, phir bhi tum kaam karte ho.', tag: 'AAJ KA THOUGHT' },
-  { text: 'Doosron se compare mat karo — sirf kal ke apne se better bano.', tag: 'AAJ KA THOUGHT' },
-  { text: 'Exam ek pal hai, tumhari mehnat ek habit — habit jeetati hai.', tag: 'AAJ KA THOUGHT' },
-  { text: 'Jitna mushkil sawal, utni badi jeet uska jawab dhoondhne mein.', tag: 'AAJ KA THOUGHT' },
-  { text: 'Aaram kal bhi milega, lekin aaj ka waqt sirf aaj hi milega.', tag: 'AAJ KA THOUGHT' },
-  { text: 'Fail hona seekhne ka hissa hai, rukna nahi.', tag: 'AAJ KA THOUGHT' },
-  { text: 'Bade sapne dekho, lekin unhe chhote-chhote roz ke steps mein todo.', tag: 'AAJ KA THOUGHT' },
+  { text: 'Small progress is still progress — do a little every day, just do not stop.', tag: "TODAY'S THOUGHT" },
+  { text: 'What feels hard today becomes the biggest strength of tomorrow.', tag: "TODAY'S THOUGHT" },
+  { text: 'More important than marks — learning a little every day.', tag: "TODAY'S THOUGHT" },
+  { text: 'Discipline is doing the work even after motivation is gone.', tag: "TODAY'S THOUGHT" },
+  { text: 'Do not compare yourself to others — just be better than you were yesterday.', tag: "TODAY'S THOUGHT" },
+  { text: 'An exam is a moment, your effort is a habit — habit wins.', tag: "TODAY'S THOUGHT" },
+  { text: 'The harder the question, the bigger the win in finding its answer.', tag: "TODAY'S THOUGHT" },
+  { text: 'Rest can wait until tomorrow, but the time you have today is only available today.', tag: "TODAY'S THOUGHT" },
+  { text: 'Failing is part of learning, not a reason to stop.', tag: "TODAY'S THOUGHT" },
+  { text: 'Dream big, but break it into small daily steps.', tag: "TODAY'S THOUGHT" },
 ];
 function getDailyQuote(){
   const start = new Date(new Date().getFullYear(), 0, 0);
@@ -1051,6 +1066,35 @@ function toggleNote(id){
 function deleteNote(id){
   state.notes = state.notes.filter(x => x.id !== id);
   saveNotes();
+  render();
+}
+
+/* ---- flashcards (sirf is browser mein, sync nahi hote — bilkul Notes jaisa) ---- */
+function saveFlashcards(){
+  localStorage.setItem('fc_flashcards', JSON.stringify(state.flashcards));
+}
+function addFlashcard(){
+  const q = (state.flashcardForm.q || '').trim();
+  const a = (state.flashcardForm.a || '').trim();
+  if (!q || !a) return;
+  state.flashcards.push({ id: Date.now(), q, a });
+  state.flashcardForm = { q: '', a: '' };
+  state.flashcardIndex = state.flashcards.length - 1;
+  state.flashcardFlipped = false;
+  saveFlashcards();
+  render();
+}
+function deleteFlashcard(id){
+  state.flashcards = state.flashcards.filter(x => x.id !== id);
+  if (state.flashcardIndex >= state.flashcards.length) state.flashcardIndex = Math.max(0, state.flashcards.length - 1);
+  state.flashcardFlipped = false;
+  saveFlashcards();
+  render();
+}
+function navFlashcard(dir){
+  if (state.flashcards.length === 0) return;
+  state.flashcardIndex = (state.flashcardIndex + dir + state.flashcards.length) % state.flashcards.length;
+  state.flashcardFlipped = false;
   render();
 }
 
@@ -1246,11 +1290,11 @@ function runPicker(){
 
 /* ---- typing speed test ---- */
 const TYPING_SAMPLES = [
-  'Padhai mein mehnat hi safalta ki sabse pehli seedhi hai.',
-  'Har din thoda naya seekhna hi asli tarakki hai.',
+  'Hard work in your studies is the first step to success.',
+  'Learning something new every day is real progress.',
   'The quick brown fox jumps over the lazy dog near the river.',
   'Practice makes a student confident, consistent and truly prepared.',
-  'Time management aaj ke competitive exams mein sabse zaroori skill hai.',
+  'Time management is one of the most important skills in competitive exams today.',
 ];
 function newTypingTest(){
   state.typing = { status:'idle', startTime:0, sample: TYPING_SAMPLES[Math.floor(Math.random()*TYPING_SAMPLES.length)], typed:'', wpm:0, accuracy:0 };
@@ -1304,16 +1348,29 @@ function renderIdQr(){
   if (!box || typeof QRCode === 'undefined') return;
   box.innerHTML = '';
   const p = state.profiles[state.session] || {};
-  const payload = `FC College Network\nName: ${p.name || ''}\nID: ${p.idCard || ''}\nClass: ${p.class || ''} - ${p.section || ''}`;
+  const payload = `SeniorCircle\nName: ${p.name || ''}\nID: ${p.idCard || ''}\nClass: ${p.class || ''} - ${p.section || ''}`;
   qrInstance = new QRCode(box, { text: payload, width: 168, height: 168, colorDark: '#1B2A4A', colorLight: '#ffffff' });
 }
 
 /* ================= state ================= */
+/* App khulte hi (login se pehle) ek chhota onboarding dikhaya jaata hai:
+   pehle Terms & Conditions, "Next" ke baad App ke baare mein poori
+   jankari — dono par "maine padh liya / samajh liya" checkbox tick
+   karne ke baad hi aage badh sakte hain. Yeh sirf is tab/session ke
+   liye yaad rakha jaata hai (sessionStorage), isliye jab bhi app naye
+   sirey se (nayi tab/window) open hoga, yeh dobara dikhega — lekin
+   isi session mein baar-baar login/logout karne par dobara nahi.  */
+function introAlreadySeen(){
+  try { return sessionStorage.getItem('fc_intro_seen') === '1'; } catch(e){ return false; }
+}
+
 const state = {
   profiles: {},
   feed: [],
   session: null,
   timeLimitReached: false,
+  introStep: introAlreadySeen() ? null : 'terms',
+  introChecked: false,
   authMode: 'login',
   authForm: { idCard:'', password:'', name:'', klass:'', section:'A', subject:'', photo:'', role:'student', adminCode:'' },
   authError: '',
@@ -1323,7 +1380,7 @@ const state = {
   adminRegistered: false,
   adminAddId: '',
   adminAddClass: '',
-  adminAddSection: 'A',
+  adminAddSection: '',
   adminAddPassYear: '',
   adminBulkIds: '',
   adminError: '',
@@ -1381,6 +1438,10 @@ const state = {
   pickerResult: null,
   typing: { status: 'idle', startTime: 0, sample: '', typed: '', wpm: 0, accuracy: 0 },
   stopwatch: { seconds: 0, running: false, laps: [] },
+  flashcards: JSON.parse(localStorage.getItem('fc_flashcards') || '[]'),
+  flashcardForm: { q: '', a: '' },
+  flashcardIndex: 0,
+  flashcardFlipped: false,
 };
 
 /* pehli baar page khulte hi saved dark-mode preference apply kar dete hain */
@@ -1407,7 +1468,7 @@ function render(){
   const selStart = hadFocus && 'selectionStart' in active ? active.selectionStart : null;
   const selEnd = hadFocus && 'selectionEnd' in active ? active.selectionEnd : null;
 
-  root.innerHTML = state.session ? renderAppShell() : renderAuth();
+  root.innerHTML = state.session ? renderAppShell() : (state.introStep ? renderIntro() : renderAuth());
   bindEvents();
 
   if (focusId){
@@ -1419,6 +1480,78 @@ function render(){
       }
     }
   }
+}
+
+const INTRO_TERMS = [
+  `SeniorCircle sirf apne institute ke students (aur admin ne verify kiye hue staff) ke liye ek private network hai — ek unique serial number/ID card se sign in hota hai.`,
+  `Apna ID card, password aur admin passcode (agar admin hain) kisi ke saath share na karein. Apni ID se hone waali har activity ki zimmedari aapki khud ki hai.`,
+  `Apna asli naam aur photo hi use karein. Kisi doosre student/staff ke naam par fake profile banana, ya kisi ka photo bina permission ke use karna allowed nahi hai.`,
+  `Post, chat ya profile mein bullying, harassment, hate speech, nudity/adult content, ya kisi bhi tarah ka galat/nuksaandayak content daalna sakht mana hai — aisa content bina warning ke hata diya ja sakta hai aur account block/delete bhi ho sakta hai.`,
+  `Aapka naam, class/course, section, subject, photo aur posts doosre logged-in students ko dikhte hain (feed/search/chat ke liye). Chat sirf un logon ke beech dikhti hai jo us conversation mein shaamil hain.`,
+  `Admin account sirf sahi passcode ke saath, school/institute ki taraf se authorized staff hi banayein — admin ke paas kuch extra rights hote hain (jaise naye serial numbers whitelist karna) jo sirf institute ke record/verification ke liye use hone chahiye.`,
+  `Yeh Terms kabhi bhi update ho sakti hain. App ka use jaari rakhna iska matlab hai ki aap updated Terms se sahmat hain.`,
+];
+
+const INTRO_ABOUT = [
+  `SeniorCircle ek student-first app hai — koi bhi class (10, 11, 12) ya degree/diploma course ka student yahan apna ID card bana kar judd sakta hai, bina kisi "staff" ya class-wise depend hue.`,
+  `Home tab par apne institute ke doosre students ke posts dekh sakte hain, apni post daal sakte hain aur like kar sakte hain.`,
+  `Search se doosre students/profiles dhoond kar follow kar sakte hain (private account ho to follow-request bhejni padegi).`,
+  `Chat tab se ek-dusre ko direct message kar sakte hain — sirf wahi log ek chat dekh sakte hain jo usme shaamil hain.`,
+  `Tools tab mein padhai ke liye kaafi free tools hain — GPA/percentage calculator, study timer, flashcards, timetable, checklist, unit converter aur bhi bahut kuch — yeh sab sirf isi device par (offline) kaam karte hain.`,
+  `Profile tab se apna naam/photo update kar sakte hain aur apna digital ID card kabhi bhi dekh sakte hain.`,
+  `Naya account banane se pehle admin ko aapka serial number pehle se whitelist karna hota hai — isse sirf institute ke asli students/staff hi account bana paate hain.`,
+];
+
+function introChecklistHtml(items){
+  return `<div class="card" style="max-height:46vh;overflow-y:auto;line-height:1.6;font-size:13.5px;color:var(--ink-soft)">
+    ${items.map(t => `<p style="margin:0 0 12px">${esc(t)}</p>`).join('')}
+  </div>`;
+}
+
+function renderIntro(){
+  const step = state.introStep;
+  const isTerms = step === 'terms';
+
+  return `
+  <div id="auth-screen">
+    <div class="brand-panel">
+      <div>
+        <div class="brand-top">
+          ${svgIcon('cap').replace('currentColor','var(--marigold)')}
+          <span class="brand-title">SeniorCircle</span>
+        </div>
+        <h1 class="brand-headline">${isTerms ? 'Terms & Conditions' : 'About SeniorCircle'}</h1>
+        <p class="brand-sub">${isTerms
+          ? 'Aage badhne se pehle in Terms ko padh lein — yeh aapke account aur data ke use ko cover karti hain.'
+          : 'App use karne se pehle jaan lein SeniorCircle mein kya-kya mil sakta hai.'}</p>
+      </div>
+    </div>
+
+    <div class="form-panel">
+      <div class="form-wrap">
+        <div class="tabbar">
+          <button type="button" class="${isTerms ? 'active' : ''}" disabled>1. Terms & Conditions</button>
+          <button type="button" class="${!isTerms ? 'active' : ''}" disabled>2. About the App</button>
+        </div>
+
+        ${introChecklistHtml(isTerms ? INTRO_TERMS : INTRO_ABOUT)}
+
+        <div class="field" style="display:flex;align-items:flex-start;gap:8px;margin-top:14px">
+          <input id="intro-agree-checkbox" type="checkbox" style="margin-top:3px;width:16px;height:16px;flex-shrink:0" ${state.introChecked ? 'checked' : ''} />
+          <label for="intro-agree-checkbox" style="font-size:13px;color:var(--ink-soft);cursor:pointer">
+            ${isTerms ? 'Maine Terms & Conditions pura padh liya hai aur main sahmat hoon.' : 'Maine app ke baare mein di gayi jaankari pura padh/samajh li hai.'}
+          </label>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:18px">
+          ${!isTerms ? `<button type="button" class="btn-ghost" data-act="intro-back">${svgIcon('back')} Back</button>` : ''}
+          <button type="button" class="btn-primary" data-act="${isTerms ? 'intro-next' : 'intro-done'}" ${state.introChecked ? '' : 'disabled'} style="flex:1">
+            ${isTerms ? 'Next' : 'Continue to Login'} ${svgIcon('chevron')}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>`;
 }
 
 function renderAuth(){
@@ -1433,16 +1566,16 @@ function renderAuth(){
       <div>
         <div class="brand-top">
           ${svgIcon('cap').replace('currentColor','var(--marigold)')}
-          <span class="brand-title">FC College Network</span>
+          <span class="brand-title">SeniorCircle</span>
         </div>
-        <h1 class="brand-headline">Class 10–12 ka apna network.</h1>
-        <p class="brand-sub">Section A aur B ke students post aur baat-cheet karte hain — sirf school ID card se sign in karke.</p>
+        <h1 class="brand-headline">Where every learner belongs.</h1>
+        <p class="brand-sub">Students from any class or course post and chat here — just sign in with your ID.</p>
       </div>
       <div class="brand-card">
         ${idCardHTML(previewProfile, 'full')}
         <div class="brand-note">
           ${svgIcon('alert').replace('currentColor','#8A93AC')}
-          <span>Class 10 se neeche ke students ke liye yeh network band rahega — ID card ki class check hoti hai.</span>
+          <span>Class 10, 11, 12 and all degree/diploma courses welcome — admin adds your serial number first, then you can create your ID card.</span>
         </div>
       </div>
     </div>
@@ -1451,56 +1584,76 @@ function renderAuth(){
       <div class="form-wrap">
         <div class="tabbar">
           <button type="button" data-act="mode-login" class="${state.authMode==='login'?'active':''}">Login</button>
-          <button type="button" data-act="mode-create" class="${state.authMode==='create'?'active':''}">Naya ID Card</button>
+          <button type="button" data-act="mode-create" class="${state.authMode==='create'?'active':''}">New ID Card</button>
         </div>
 
         ${state.authMode === 'login' ? `
           <div class="field">
-            <label>School ID Card Number</label>
-            <input id="login-id" placeholder="jaise: 11851" value="${esc(f.idCard)}" />
-            <div class="verify-hint" style="margin:6px 2px 0">Apne school ID card par likha "S R No." daaliye (sirf number)</div>
+            <label>Serial Number</label>
+            <input id="login-id" placeholder="e.g. 11851" value="${esc(f.idCard)}" />
+            <div class="verify-hint" style="margin:6px 2px 0">Enter your unique serial number (numbers only)</div>
           </div>
           <div class="field">
             <label>Password</label>
-            <input id="login-password" type="password" placeholder="Aapka password" value="${esc(f.password)}" />
+            <input id="login-password" type="password" placeholder="Your password" value="${esc(f.password)}" />
           </div>
           ${state.authError ? `<div class="error-note">${esc(state.authError)}</div>` : ''}
-          <button type="button" class="btn-primary" data-act="login" ${state.authBusy?'disabled':''}>${svgIcon('idcard')} ${state.authBusy?'Sign in ho raha hai…':'Sign in'}</button>
+          <button type="button" class="btn-primary" data-act="login" ${state.authBusy?'disabled':''}>${svgIcon('idcard')} ${state.authBusy?'Signing in…':'Sign in'}</button>
         ` : `
           <div class="role-toggle">
             <button type="button" data-act="role-student" class="${f.role!=='admin'?'active':''}">Student</button>
-            <button type="button" data-act="role-admin" class="${f.role==='admin'?'active':''}">School Admin</button>
+            <button type="button" data-act="role-admin" class="${f.role==='admin'?'active':''}">Admin</button>
           </div>
 
           <div class="field">
-            <label>${f.role==='admin' ? 'Staff ID Card Number' : 'School ID Card Number'}</label>
-            <input id="create-id" placeholder="jaise: 11851" value="${esc(f.idCard)}" />
-            <div class="verify-hint" style="margin:6px 2px 0">Apne school ID card par likha "S R No." daaliye (sirf number, jaise 11851)</div>
+            <label>Serial Number</label>
+            <input id="create-id" placeholder="e.g. 11851" value="${esc(f.idCard)}" />
+            <div class="verify-hint" style="margin:6px 2px 0">Pick any unique serial number (numbers only, e.g. 11851)</div>
           </div>
           <div class="field">
             <label>Password</label>
-            <input id="create-password" type="password" placeholder="Kam se kam 6 character" value="${esc(f.password)}" />
+            <input id="create-password" type="password" placeholder="At least 6 characters" value="${esc(f.password)}" />
           </div>
           <div class="field">
-            <label>Naam</label>
-            <input id="create-name" placeholder="Aapka naam" value="${esc(f.name)}" />
+            <label>Name</label>
+            <input id="create-name" placeholder="Your name" value="${esc(f.name)}" />
           </div>
+
+          ${f.role !== 'admin' ? `
+            <div class="field">
+              <label>Class / Course</label>
+              <select id="create-class">
+                <option value="">Select…</option>
+                <optgroup label="School">
+                  ${['Class 10','Class 11','Class 12'].map(c=>`<option value="${c}" ${f.klass===c?'selected':''}>${c}</option>`).join('')}
+                </optgroup>
+                <optgroup label="Undergraduate">
+                  ${['BA','B.Com','B.Sc','BBA','BCA','B.Tech','B.E.','LLB','B.Ed','BHM','BPharm'].map(c=>`<option value="${c}" ${f.klass===c?'selected':''}>${c}</option>`).join('')}
+                </optgroup>
+                <optgroup label="Postgraduate">
+                  ${['MA','M.Com','M.Sc','MBA','MCA','M.Tech','LLM','M.Ed','PhD'].map(c=>`<option value="${c}" ${f.klass===c?'selected':''}>${c}</option>`).join('')}
+                </optgroup>
+                <optgroup label="Other">
+                  ${['Diploma','Other'].map(c=>`<option value="${c}" ${f.klass===c?'selected':''}>${c}</option>`).join('')}
+                </optgroup>
+              </select>
+            </div>
+          ` : ''}
 
           ${f.role === 'admin' ? `
             <div class="field">
               <label>Designation / Subject</label>
-              <input id="create-subject" placeholder="jaise: Vice Principal" value="${esc(f.subject)}" />
+              <input id="create-subject" placeholder="e.g. Vice Principal" value="${esc(f.subject)}" />
             </div>
             <div class="field">
               <label>Admin Passcode</label>
-              <input id="create-admincode" type="password" placeholder="School se milega" value="${esc(f.adminCode)}" />
-              <div class="verify-hint" style="margin-top:6px">Sirf school staff ke paas yeh passcode hota hai.</div>
+              <input id="create-admincode" type="password" placeholder="Provided by the admin" value="${esc(f.adminCode)}" />
+              <div class="verify-hint" style="margin-top:6px">Only admins have this passcode.</div>
             </div>
           ` : `
-            <div class="verify-hint" style="margin-bottom:14px">Aapki <strong>Class aur Section khud select nahi karni</strong> — yeh aapke ID card number ke against school admin ki list se automatically li jaayegi, taaki koi bhi galat class chunkar register na kar sake.</div>
             <div class="field">
-              <label>Subject</label>
-              <input id="create-subject" placeholder="jaise: Science" value="${esc(f.subject)}" />
+              <label>Favourite Subject</label>
+              <input id="create-subject" placeholder="e.g. Science" value="${esc(f.subject)}" />
             </div>
           `}
 
@@ -1508,14 +1661,14 @@ function renderAuth(){
             <label>Photo</label>
             <div class="photo-row">
               <div class="photo-thumb">${f.photo ? `<img src="${f.photo}"/>` : svgIcon('camera').replace('currentColor','var(--ink-soft)')}</div>
-              <button type="button" class="btn-ghost" data-act="pick-photo">Photo chuniye</button>
+              <button type="button" class="btn-ghost" data-act="pick-photo">Choose photo</button>
               <input id="create-photo-input" type="file" accept="image/*" hidden />
             </div>
           </div>
 
           ${state.authError ? `<div class="error-note">${esc(state.authError)}</div>` : ''}
 
-          <button type="button" class="btn-primary" data-act="create" ${state.authBusy?'disabled':''}>${svgIcon('check')} ${state.authBusy?'Ban raha hai…':(f.role==='admin' ? 'Admin ID Card banaayein' : 'ID Card banaayein aur join karein')}</button>
+          <button type="button" class="btn-primary" data-act="create" ${state.authBusy?'disabled':''}>${svgIcon('check')} ${state.authBusy?'Creating…':(f.role==='admin' ? 'Create Admin ID Card' : 'Create ID Card and join')}</button>
         `}
       </div>
     </div>
@@ -1534,11 +1687,11 @@ function renderAppShell(){
     return `
     <div id="app-shell">
       <header class="topbar">
-        <div class="topbar-brand">${svgIcon('cap').replace('currentColor','var(--navy)')} FC College Network</div>
+        <div class="topbar-brand">${svgIcon('cap').replace('currentColor','var(--navy)')} SeniorCircle</div>
         <button type="button" class="logout-btn" data-act="logout">${svgIcon('logout')} Logout</button>
       </header>
       <main>
-        <div class="empty-state">Profile load ho rahi hai…</div>
+        <div class="empty-state">Loading profile…</div>
       </main>
     </div>`;
   }
@@ -1559,18 +1712,18 @@ function renderAppShell(){
     return `
     <div id="app-shell">
       <header class="topbar">
-        <div class="topbar-brand">${svgIcon('cap').replace('currentColor','var(--navy)')} FC College Network</div>
+        <div class="topbar-brand">${svgIcon('cap').replace('currentColor','var(--navy)')} SeniorCircle</div>
         <button type="button" class="logout-btn" data-act="logout">${svgIcon('logout')} Logout</button>
       </header>
       <main>
         <div class="card" style="text-align:center;padding:36px 20px;">
           ${svgIcon('alert').replace('currentColor','var(--maroon)')}
-          <div style="font-family:'Zilla Slab',serif;font-weight:600;font-size:18px;margin:14px 0 8px;">Aaj ka screen-time limit khatam</div>
+          <div style="font-family:'Zilla Slab',serif;font-weight:600;font-size:18px;margin:14px 0 8px;">Today's screen-time limit reached</div>
           <div style="color:var(--ink-soft);font-size:14px;line-height:1.6;max-width:340px;margin:0 auto;">
-            Aapne aaj FC College Network par ${DAILY_USAGE_LIMIT_MINUTES} minute (1 ghanta 30 minute) bita liye hain.
-            Padhai ke liye break lena zaroori hai — kal wapas aa jaayein!
+            You have spent ${DAILY_USAGE_LIMIT_MINUTES} minutes (1 hour 30 minutes) on SeniorCircle today.
+            Taking a break for your studies is important — come back tomorrow!
           </div>
-          <button type="button" class="btn-primary" style="margin-top:16px" data-act="tab-tools">${svgIcon('tools')} Study Tools kholein</button>
+          <button type="button" class="btn-primary" style="margin-top:16px" data-act="tab-tools">${svgIcon('tools')} Open Study Tools</button>
         </div>
       </main>
     </div>`;
@@ -1597,7 +1750,7 @@ function renderAppShell(){
   return `
   <div id="app-shell">
     <header class="topbar">
-      <div class="topbar-brand">${svgIcon('cap').replace('currentColor','var(--navy)')} FC College Network</div>
+      <div class="topbar-brand">${svgIcon('cap').replace('currentColor','var(--navy)')} SeniorCircle</div>
       <div style="display:flex;align-items:center;gap:8px">
         <button type="button" class="theme-toggle-btn" data-act="toggle-theme" title="Dark/Light mode">${svgIcon(state.theme==='dark'?'sun':'moon')}</button>
         <button type="button" class="logout-btn" data-act="logout">${svgIcon('logout')} Logout</button>
@@ -1631,7 +1784,7 @@ function renderSearch(){
     .sort((a,b)=>a.name.localeCompare(b.name));
 
   const rows = results.length === 0
-    ? `<div class="empty-state">Koi student nahi mila.</div>`
+    ? `<div class="empty-state">No student found.</div>`
     : results.map(p => {
         const isFollowing = (me.following||[]).includes(p.idCard);
         const isRequested = !isFollowing && (p.followRequests||[]).includes(state.session);
@@ -1640,7 +1793,7 @@ function renderSearch(){
           <div class="avatar" style="width:44px;height:44px;cursor:pointer" data-act="open-profile" data-id="${esc(p.idCard)}">${p.photo?`<img src="${p.photo}"/>`:svgIcon('user').replace('currentColor','var(--ink-soft)')}</div>
           <div class="user-row-info" data-act="open-profile" data-id="${esc(p.idCard)}" style="cursor:pointer">
             <div class="user-row-name">${esc(p.name)} ${verifiedBadge(p)}</div>
-            <div class="user-row-meta">Class ${esc(p.class)} · Sec ${esc(p.section)}${p.subject?' · '+esc(p.subject):''}</div>
+            <div class="user-row-meta">${esc(p.class) || '—'}${p.section?' · Sec '+esc(p.section):''}${p.subject?' · '+esc(p.subject):''}</div>
           </div>
           <button type="button" class="follow-btn ${isFollowing?'following':(isRequested?'requested':'')}" data-act="toggle-follow" data-id="${esc(p.idCard)}">
             ${isFollowing ? svgIcon('userCheck')+' Following' : (isRequested ? svgIcon('userCheck')+' Requested' : svgIcon('userPlus')+' Follow')}
@@ -1649,7 +1802,7 @@ function renderSearch(){
       }).join('');
 
   return `
-    <div class="search-bar">${svgIcon('search')}<input id="search-input" placeholder="Naam, class ya ID card se search karein…" value="${esc(state.searchQuery)}" /></div>
+    <div class="search-bar">${svgIcon('search')}<input id="search-input" placeholder="Search by name, class or ID card…" value="${esc(state.searchQuery)}" /></div>
     ${rows}
   `;
 }
@@ -1674,6 +1827,7 @@ function renderTools(){
     { id:'picker', label:'Group/Name Picker', icon:'shuffle' },
     { id:'typing', label:'Typing Test', icon:'keyboard' },
     { id:'stopwatch', label:'Stopwatch', icon:'stopwatch' },
+    { id:'flashcards', label:'Flashcards', icon:'note' },
   ];
   return `
     <div class="quote-card">
@@ -1698,6 +1852,7 @@ function renderTools(){
     ${t==='picker' ? renderToolPicker() : ''}
     ${t==='typing' ? renderToolTyping() : ''}
     ${t==='stopwatch' ? renderToolStopwatch() : ''}
+    ${t==='flashcards' ? renderToolFlashcards() : ''}
   `;
 }
 
@@ -1726,7 +1881,7 @@ function renderToolCalc(){
   return `
     <div class="tool-card">
       <div class="tool-card-title">${svgIcon('calc')} GPA / Percentage Calculator</div>
-      <div class="tool-card-sub">Sab kuch turant, isi phone mein calculate hota hai — koi data kahin nahi jaata.</div>
+      <div class="tool-card-sub">Everything is calculated instantly on this phone — no data goes anywhere.</div>
       <div class="seg-toggle">
         <button type="button" class="${c.mode==='percent'?'active':''}" data-act="calc-mode" data-val="percent">Marks → %</button>
         <button type="button" class="${c.mode==='cgpa2pct'?'active':''}" data-act="calc-mode" data-val="cgpa2pct">CGPA → %</button>
@@ -1750,7 +1905,7 @@ function renderToolTimer(){
   return `
     <div class="tool-card">
       <div class="tool-card-title">${svgIcon('clock')} Study Timer (Pomodoro)</div>
-      <div class="tool-card-sub">25 min focus + 5 min break — browser ki apni clock use hoti hai.</div>
+      <div class="tool-card-sub">25 min focus + 5 min break — uses the browser's own clock.</div>
       <div class="timer-mode-label">${timer.mode === 'focus' ? 'FOCUS TIME' : 'BREAK TIME'}</div>
       <div class="timer-display">${fmtTime(timer.seconds)}</div>
       <div class="timer-btn-row">
@@ -1766,13 +1921,13 @@ function renderToolCountdown(){
   return `
     <div class="tool-card">
       <div class="tool-card-title">${svgIcon('calendar')} Exam Countdown</div>
-      <div class="tool-card-sub">Date fixed hoti hai, roz calculate hoti hai — Firebase se kuch nahi mangta.</div>
-      <div class="field"><label>Exam ka naam</label><input id="cd-name" placeholder="Board Exams" value="${esc(cd.name)}" /></div>
-      <div class="field"><label>Exam ki date</label><input id="cd-date" type="date" value="${esc(cd.date)}" /></div>
+      <div class="tool-card-sub">The date is fixed and recalculated daily — nothing is requested from Firebase.</div>
+      <div class="field"><label>Exam name</label><input id="cd-name" placeholder="Board Exams" value="${esc(cd.name)}" /></div>
+      <div class="field"><label>Exam date</label><input id="cd-date" type="date" value="${esc(cd.date)}" /></div>
       ${days !== null ? `
         <div class="countdown-num">${days >= 0 ? days : 0}</div>
-        <div class="countdown-label">${days > 0 ? `din baaki hain — ${esc(cd.name)} ke liye` : days === 0 ? `${esc(cd.name)} aaj hai!` : `${esc(cd.name)} nikal chuka hai`}</div>
-      ` : `<div class="countdown-label" style="margin-top:10px">Date daalein countdown dekhne ke liye.</div>`}
+        <div class="countdown-label">${days > 0 ? `days left — for ${esc(cd.name)}` : days === 0 ? `${esc(cd.name)} is today!` : `${esc(cd.name)} has passed`}</div>
+      ` : `<div class="countdown-label" style="margin-top:10px">Enter a date to see the countdown.</div>`}
     </div>`;
 }
 
@@ -1780,8 +1935,8 @@ function renderToolQr(){
   const p = state.profiles[state.session] || {};
   return `
     <div class="tool-card">
-      <div class="tool-card-title">${svgIcon('qrIcon')} Apne ID Card ka QR Code</div>
-      <div class="tool-card-sub">Aapki already-loaded profile info se turant banta hai — library scanning, attendance jaisi jagah kaam aa sakta hai.</div>
+      <div class="tool-card-title">${svgIcon('qrIcon')} QR Code for Your ID Card</div>
+      <div class="tool-card-sub">Generated instantly from your already-loaded profile info — useful for places like library scanning and attendance.</div>
       <div class="idcard-qr-box" id="id-qr-box"></div>
       <div style="text-align:center;font-size:12px;color:var(--ink-soft)">${esc(p.name || '')} · ID ${esc(p.idCard || '')}</div>
     </div>`;
@@ -1790,7 +1945,7 @@ function renderToolQr(){
 function renderToolNotes(){
   const notes = state.notes || [];
   const rows = notes.length === 0
-    ? `<div class="empty-state" style="padding:24px 0">Koi note nahi — neeche se add karein.</div>`
+    ? `<div class="empty-state" style="padding:24px 0">No notes — add one below.</div>`
     : notes.map(n => `
       <div class="note-item">
         <button type="button" class="note-check ${n.done?'done':''}" data-act="note-toggle" data-id="${n.id}">${n.done ? svgIcon('check') : ''}</button>
@@ -1800,11 +1955,41 @@ function renderToolNotes(){
   return `
     <div class="tool-card">
       <div class="tool-card-title">${svgIcon('note')} Personal Notes / To-Do</div>
-      <div class="tool-card-sub">Sirf tumhare is phone/browser mein save hota hai — dusre device par login karne se ye nahi dikhega.</div>
+      <div class="tool-card-sub">Saved only on this phone/browser — it will not show up if you log in on another device.</div>
       ${rows}
       <div class="note-add-row">
-        <input id="note-input" placeholder="Naya note likhein…" value="${esc(state.noteInput)}" />
+        <input id="note-input" placeholder="Write a new note…" value="${esc(state.noteInput)}" />
         <button type="button" data-act="note-add">${svgIcon('plus')}</button>
+      </div>
+    </div>`;
+}
+
+function renderToolFlashcards(){
+  const cards = state.flashcards || [];
+  const idx = Math.min(state.flashcardIndex || 0, Math.max(0, cards.length - 1));
+  const current = cards[idx];
+  const viewer = cards.length === 0
+    ? `<div class="empty-state" style="padding:24px 0">No flashcards — add one below.</div>`
+    : `
+      <div class="flashcard-viewer" data-act="flashcard-flip">
+        <div class="flashcard-face">${esc(state.flashcardFlipped ? current.a : current.q)}</div>
+        <div class="tool-card-sub" style="text-align:center;margin-top:8px">${state.flashcardFlipped ? 'Answer — tap to flip back' : 'Question — tap to see the answer'}</div>
+      </div>
+      <div class="flashcard-nav">
+        <button type="button" data-act="flashcard-prev">${svgIcon('back')}</button>
+        <div class="tool-card-sub">${idx + 1} / ${cards.length}</div>
+        <button type="button" data-act="flashcard-next">${svgIcon('chevron')}</button>
+        <button type="button" class="note-del" data-act="flashcard-delete" data-id="${current.id}">${svgIcon('trash')}</button>
+      </div>`;
+  return `
+    <div class="tool-card">
+      <div class="tool-card-title">${svgIcon('note')} Flashcards</div>
+      <div class="tool-card-sub">Saved only on this phone/browser — make your own Q&A cards for revision.</div>
+      ${viewer}
+      <div class="flashcard-add-row">
+        <input id="flashcard-q" placeholder="Question…" value="${esc(state.flashcardForm.q)}" />
+        <input id="flashcard-a" placeholder="Answer…" value="${esc(state.flashcardForm.a)}" />
+        <button type="button" class="btn-primary" data-act="flashcard-add">${svgIcon('plus')} Add Card</button>
       </div>
     </div>`;
 }
@@ -1817,7 +2002,7 @@ function renderToolUnitConv(){
   return `
     <div class="tool-card">
       <div class="tool-card-title">${svgIcon('swap')} Unit Converter</div>
-      <div class="tool-card-sub">Length, weight aur temperature turant convert karein — offline bhi chalega.</div>
+      <div class="tool-card-sub">Convert length, weight and temperature instantly — works offline too.</div>
       <div class="seg-toggle">
         <button type="button" class="${c.cat==='length'?'active':''}" data-act="uc-cat" data-val="length">Length</button>
         <button type="button" class="${c.cat==='weight'?'active':''}" data-act="uc-cat" data-val="weight">Weight</button>
@@ -1840,8 +2025,8 @@ function renderToolPeriodic(){
   return `
     <div class="tool-card">
       <div class="tool-card-title">${svgIcon('atom')} Periodic Table</div>
-      <div class="tool-card-sub">Sabhi 118 elements — naam ya symbol se search karein, tap karke details dekhein.</div>
-      <div class="field"><input id="periodic-search" placeholder="Search: naam, symbol ya number…" value="${esc(state.periodicSearch)}" /></div>
+      <div class="tool-card-sub">All 118 elements — search by name or symbol, tap for details.</div>
+      <div class="field"><input id="periodic-search" placeholder="Search: name, symbol or number…" value="${esc(state.periodicSearch)}" /></div>
       ${sel ? `
         <div class="tool-result" style="background:${CAT_COLORS[sel[4]]}22;text-align:left;">
           <div style="display:flex;align-items:center;gap:10px;">
@@ -1856,7 +2041,7 @@ function renderToolPeriodic(){
         ${list.map(e => `<button type="button" class="periodic-tile" data-act="periodic-pick" data-id="${e[0]}" style="background:${CAT_COLORS[e[4]]}${state.periodicSelected===e[0]?'':'55'}">
           <span class="periodic-tile-num">${e[0]}</span><span class="periodic-tile-sym">${esc(e[1])}</span>
         </button>`).join('')}
-        ${list.length===0 ? `<div class="empty-state" style="padding:24px 0;width:100%">Kuch nahi mila.</div>` : ''}
+        ${list.length===0 ? `<div class="empty-state" style="padding:24px 0;width:100%">Nothing found.</div>` : ''}
       </div>
     </div>`;
 }
@@ -1867,7 +2052,7 @@ function renderToolFormulas(){
   return `
     <div class="tool-card">
       <div class="tool-card-title">${svgIcon('book')} Formula Sheet</div>
-      <div class="tool-card-sub">Physics, Math aur Chemistry ke zaroori formulas ek jagah.</div>
+      <div class="tool-card-sub">Essential Physics, Math and Chemistry formulas in one place.</div>
       <div class="seg-toggle">
         <button type="button" class="${subj==='physics'?'active':''}" data-act="formula-subject" data-val="physics">Physics</button>
         <button type="button" class="${subj==='math'?'active':''}" data-act="formula-subject" data-val="math">Math</button>
@@ -1885,7 +2070,7 @@ function renderToolTimetable(){
   return `
     <div class="tool-card">
       <div class="tool-card-title">${svgIcon('grid')} Weekly Timetable</div>
-      <div class="tool-card-sub">Apna class schedule yahan bana kar rakhein — sirf is device par save hota hai.</div>
+      <div class="tool-card-sub">Build and keep your class schedule here — saved only on this device.</div>
       <div class="tool-tabs" style="margin-bottom:12px">
         ${TT_DAYS.map(d => `<button type="button" class="${day===d?'active':''}" data-act="tt-day" data-val="${d}">${d}</button>`).join('')}
       </div>
@@ -1895,7 +2080,7 @@ function renderToolTimetable(){
       </div>
       <button type="button" class="btn-primary" data-act="tt-add">${svgIcon('plus')} Add</button>
       <div style="margin-top:14px">
-        ${entries.length===0 ? `<div class="empty-state" style="padding:20px 0">Aaj (${day}) ke liye koi entry nahi.</div>` :
+        ${entries.length===0 ? `<div class="empty-state" style="padding:20px 0">No entries for today (${day}).</div>` :
           entries.map(e => `
           <div class="note-item">
             <div class="note-item-text" style="font-weight:600">${esc(e.time)}</div>
@@ -1909,7 +2094,7 @@ function renderToolTimetable(){
 function renderToolChecklist(){
   const items = state.checklist || [];
   const rows = items.length === 0
-    ? `<div class="empty-state" style="padding:24px 0">Koi task nahi — neeche se add karein.</div>`
+    ? `<div class="empty-state" style="padding:24px 0">No tasks — add one below.</div>`
     : items.map(n => `
       <div class="note-item">
         <button type="button" class="note-check ${n.done?'done':''}" data-act="checklist-toggle" data-id="${n.id}">${n.done ? svgIcon('check') : ''}</button>
@@ -1919,10 +2104,10 @@ function renderToolChecklist(){
   return `
     <div class="tool-card">
       <div class="tool-card-title">${svgIcon('checklist')} Study Checklist</div>
-      <div class="tool-card-sub">Roz ke study tasks tick karein — sirf is device par save hota hai.</div>
+      <div class="tool-card-sub">Tick off your daily study tasks — saved only on this device.</div>
       ${rows}
       <div class="note-add-row">
-        <input id="checklist-input" placeholder="Naya task likhein…" value="${esc(state.checklistInput)}" />
+        <input id="checklist-input" placeholder="Write a new task…" value="${esc(state.checklistInput)}" />
         <button type="button" data-act="checklist-add">${svgIcon('plus')}</button>
       </div>
     </div>`;
@@ -1934,8 +2119,8 @@ function renderToolWordCount(){
   return `
     <div class="tool-card">
       <div class="tool-card-title">${svgIcon('textCount')} Word / Character Counter</div>
-      <div class="tool-card-sub">Essay ya answer likhte waqt live count dekhein.</div>
-      <div class="field"><textarea id="wc-text" rows="7" placeholder="Yahan apna text paste ya type karein…">${esc(text)}</textarea></div>
+      <div class="tool-card-sub">See a live count while writing an essay or answer.</div>
+      <div class="field"><textarea id="wc-text" rows="7" placeholder="Paste or type your text here…">${esc(text)}</textarea></div>
       <div class="wc-stats">
         <div class="wc-stat"><div class="wc-stat-num">${stats.words}</div><div class="wc-stat-label">Words</div></div>
         <div class="wc-stat"><div class="wc-stat-num">${stats.chars}</div><div class="wc-stat-label">Characters</div></div>
@@ -1950,13 +2135,13 @@ function renderToolAge(){
   return `
     <div class="tool-card">
       <div class="tool-card-title">${svgIcon('calendar')} Age Calculator</div>
-      <div class="tool-card-sub">Date of birth se exact age nikaale — years, months, days mein.</div>
+      <div class="tool-card-sub">Get an exact age from a date of birth — in years, months, and days.</div>
       <div class="field"><label>Date of Birth</label><input id="age-dob" type="date" value="${esc(state.ageDob)}" /></div>
       ${age ? `
         <div class="tool-result">
           <div class="tool-result-num">${age.years}y ${age.months}m ${age.days}d</div>
-          <div class="tool-result-label">Total ${age.totalDays.toLocaleString('en-IN')} din</div>
-        </div>` : state.ageDob ? `<div class="tool-result-label" style="margin-top:8px">Date sahi daalein.</div>` : ''}
+          <div class="tool-result-label">Total ${age.totalDays.toLocaleString('en-IN')} days</div>
+        </div>` : state.ageDob ? `<div class="tool-result-label" style="margin-top:8px">Please enter a valid date.</div>` : ''}
     </div>`;
 }
 
@@ -1966,14 +2151,14 @@ function renderToolPicker(){
   return `
     <div class="tool-card">
       <div class="tool-card-title">${svgIcon('shuffle')} Random Group / Name Picker</div>
-      <div class="tool-card-sub">Class projects ke liye groups banayein ya ek random naam pick karein.</div>
+      <div class="tool-card-sub">Create groups for class projects or pick a random name.</div>
       <div class="seg-toggle">
-        <button type="button" class="${mode==='groups'?'active':''}" data-act="picker-mode" data-val="groups">Groups Banayein</button>
-        <button type="button" class="${mode==='pick'?'active':''}" data-act="picker-mode" data-val="pick">Ek Naam Choose Karein</button>
+        <button type="button" class="${mode==='groups'?'active':''}" data-act="picker-mode" data-val="groups">Create Groups</button>
+        <button type="button" class="${mode==='pick'?'active':''}" data-act="picker-mode" data-val="pick">Choose One Name</button>
       </div>
-      <div class="field"><label>Names (ek line mein ek naam)</label><textarea id="picker-names" rows="5" placeholder="Aman&#10;Riya&#10;Sahil&#10;Priya">${esc(state.groupNamesInput)}</textarea></div>
-      ${mode==='groups' ? `<div class="field"><label>Har group mein kitne log?</label><input id="picker-size" type="number" min="1" value="${esc(state.groupSize)}" /></div>` : ''}
-      <button type="button" class="btn-primary" data-act="picker-run">${svgIcon('shuffle')} ${mode==='groups'?'Groups Banayein':'Random Naam Choose Karein'}</button>
+      <div class="field"><label>Names (one name per line)</label><textarea id="picker-names" rows="5" placeholder="Aman&#10;Riya&#10;Sahil&#10;Priya">${esc(state.groupNamesInput)}</textarea></div>
+      ${mode==='groups' ? `<div class="field"><label>How many people per group?</label><input id="picker-size" type="number" min="1" value="${esc(state.groupSize)}" /></div>` : ''}
+      <button type="button" class="btn-primary" data-act="picker-run">${svgIcon('shuffle')} ${mode==='groups'?'Create Groups':'Choose Random Name'}</button>
       ${r && r.type==='pick' ? `<div class="tool-result"><div class="tool-result-num">${esc(r.name)}</div></div>` : ''}
       ${r && r.type==='groups' ? `
         <div style="margin-top:14px">
@@ -1990,16 +2175,16 @@ function renderToolTyping(){
   return `
     <div class="tool-card">
       <div class="tool-card-title">${svgIcon('keyboard')} Typing Speed Test</div>
-      <div class="tool-card-sub">Neeche wala text jaldi aur sahi type karke apna WPM check karein.</div>
+      <div class="tool-card-sub">Type the text below quickly and accurately to check your WPM.</div>
       <div class="typing-sample">${t.sample.split('').map((ch,i) => {
         let cls = '';
         if (i < t.typed.length) cls = t.typed[i] === ch ? 'ok' : 'bad';
         return `<span class="${cls}">${esc(ch)}</span>`;
       }).join('')}</div>
-      <div class="field"><textarea id="typing-input" rows="3" placeholder="Yahan type karna shuru karein…" ${t.status==='done'?'disabled':''}>${esc(t.typed)}</textarea></div>
+      <div class="field"><textarea id="typing-input" rows="3" placeholder="Start typing here…" ${t.status==='done'?'disabled':''}>${esc(t.typed)}</textarea></div>
       <div class="timer-btn-row">
         ${t.status!=='done' ? `<button type="button" class="btn-start" data-act="typing-finish">Finish</button>` : ''}
-        <button type="button" class="btn-reset" data-act="typing-reset">Naya Test</button>
+        <button type="button" class="btn-reset" data-act="typing-reset">New Test</button>
       </div>
       ${t.status==='done' ? `
         <div class="tool-result">
@@ -2014,7 +2199,7 @@ function renderToolStopwatch(){
   return `
     <div class="tool-card">
       <div class="tool-card-title">${svgIcon('stopwatch')} Simple Stopwatch</div>
-      <div class="tool-card-sub">Basic stopwatch, lap times ke saath.</div>
+      <div class="tool-card-sub">Basic stopwatch, with lap times.</div>
       <div class="timer-display">${fmtStopwatch(sw.seconds)}</div>
       <div class="timer-btn-row">
         <button type="button" class="btn-start" data-act="${sw.running?'pause-stopwatch':'start-stopwatch'}">${sw.running ? 'Pause' : 'Start'}</button>
@@ -2030,11 +2215,11 @@ function renderToolStopwatch(){
 
 function renderProfileView(idCard){
   const p = state.profiles[idCard];
-  if (!p) return `<div class="empty-state">Profile nahi mila.</div>`;
+  if (!p) return `<div class="empty-state">Profile not found.</div>`;
   if (idCard === state.session){
     return `
-    <div class="back-row"><button type="button" class="back-btn" data-act="close-profile">${svgIcon('back')}</button><div style="font-weight:600;font-size:14px">Aapki profile</div></div>
-    <div class="empty-state">Apni profile "Profile" tab mein edit karein.</div>`;
+    <div class="back-row"><button type="button" class="back-btn" data-act="close-profile">${svgIcon('back')}</button><div style="font-weight:600;font-size:14px">Your profile</div></div>
+    <div class="empty-state">Edit your profile from the "Profile" tab.</div>`;
   }
   const me = state.profiles[state.session];
   const isFollowing = (me.following||[]).includes(p.idCard);
@@ -2046,9 +2231,9 @@ function renderProfileView(idCard){
   const isPrivateLocked = p.privateAccount && !isFollowing;
 
   const postsHtml = isPrivateLocked
-    ? `<div class="empty-state">${svgIcon('shield')}<br/>Yeh account private hai. Posts dekhne ke liye pehle follow karein.</div>`
+    ? `<div class="empty-state">${svgIcon('shield')}<br/>This account is private. Follow to see their posts.</div>`
     : (userPosts.length === 0
-        ? `<div class="empty-state">Abhi koi post nahi hai.</div>`
+        ? `<div class="empty-state">No posts yet.</div>`
         : userPosts.map(post => {
             const liked = post.likes.includes(state.session);
             return `
@@ -2057,7 +2242,7 @@ function renderProfileView(idCard){
                 <div class="avatar" style="width:34px;height:34px">${p.photo ? `<img src="${p.photo}"/>` : svgIcon('user').replace('currentColor','var(--ink-soft)')}</div>
                 <div class="post-headtext">
                   <div class="post-name">${esc(p.name)} ${verifiedBadge(p)}</div>
-                  <div class="post-meta">Class ${esc(post.class)} · Sec ${esc(post.section)} · ${timeAgo(post.time)}</div>
+                  <div class="post-meta">${esc(post.class) || '—'}${post.section?' · Sec '+esc(post.section):''} · ${timeAgo(post.time)}</div>
                 </div>
               </div>
               ${post.text ? `<div class="post-text">${esc(post.text)}</div>` : ''}
@@ -2083,7 +2268,7 @@ function renderProfileView(idCard){
         <div class="stat-box"><div class="stat-num">${(p.following||[]).length}</div><div class="stat-label">Following</div></div>
         <div class="stat-box"><div class="stat-num">${myPostsCount}</div><div class="stat-label">Posts</div></div>
       </div>
-      ${blockedMe ? `<div class="blocked-note">Yeh student aapse contact nahi kar sakta.</div>` : `
+      ${blockedMe ? `<div class="blocked-note">This student cannot contact you.</div>` : `
       <div class="action-row">
         <button type="button" class="follow-btn ${isFollowing?'following':(isRequested?'requested':'')}" data-act="toggle-follow" data-id="${esc(p.idCard)}">
           ${isFollowing ? svgIcon('userCheck')+' Following' : (isRequested ? svgIcon('userCheck')+' Requested' : svgIcon('userPlus')+' Follow')}
@@ -2098,10 +2283,10 @@ function renderProfileView(idCard){
 
 function renderChatList(){
   const q = (state.chatSearchQuery || '').trim().toLowerCase();
-  const searchBar = `<div class="search-bar">${svgIcon('search')}<input id="chat-search-input" placeholder="Chat mein naam se search karein…" value="${esc(state.chatSearchQuery)}" /></div>`;
+  const searchBar = `<div class="search-bar">${svgIcon('search')}<input id="chat-search-input" placeholder="Search by name in chat…" value="${esc(state.chatSearchQuery)}" /></div>`;
 
   if (!state.chatList.length){
-    return `${searchBar}<div class="chat-empty">Abhi koi conversation nahi hai.<br/>Search se kisi student ko dhoond kar message bhejein.</div>`;
+    return `${searchBar}<div class="chat-empty">No conversations yet.<br/>Search for a student to send a message.</div>`;
   }
 
   const filtered = !q ? state.chatList : state.chatList.filter(c => {
@@ -2111,7 +2296,7 @@ function renderChatList(){
   });
 
   if (!filtered.length){
-    return `${searchBar}<div class="chat-empty">Koi chat nahi mili.</div>`;
+    return `${searchBar}<div class="chat-empty">No chats found.</div>`;
   }
 
   const rows = filtered.map(c => {
@@ -2144,11 +2329,11 @@ function renderChatList(){
 function renderChatThread(contactId){
   const me = state.profiles[state.session];
   const p = state.profiles[contactId];
-  if (!p) return `<div class="empty-state">Profile nahi mila.</div>`;
+  if (!p) return `<div class="empty-state">Profile not found.</div>`;
   const isBlocked = (me.blocked||[]).includes(contactId) || (p.blocked||[]).includes(state.session);
 
   const bubbles = state.chatMessages.length === 0
-    ? `<div class="chat-empty">Abhi koi message nahi. Hello bolke shuru karein!</div>`
+    ? `<div class="chat-empty">No messages yet. Say hello to get started!</div>`
     : state.chatMessages.map(m => {
         let inner;
         if (m.attachment && m.attachment.type === 'image'){
@@ -2158,7 +2343,7 @@ function renderChatThread(contactId){
         } else {
           inner = esc(m.text);
         }
-        return `<div class="chat-bubble ${m.from===state.session?'mine':'theirs'} ${m.attachment ? 'has-attachment' : ''}">${inner}<span class="chat-bubble-time">${timeAgo(m.time)}</span>${m.from===state.session && m.id ? `<button type="button" class="chat-bubble-del" data-act="delete-message" data-id="${esc(m.id)}" title="Message delete karein">${svgIcon('trash')}</button>` : ''}</div>`;
+        return `<div class="chat-bubble ${m.from===state.session?'mine':'theirs'} ${m.attachment ? 'has-attachment' : ''}">${inner}<span class="chat-bubble-time">${timeAgo(m.time)}</span>${m.from===state.session && m.id ? `<button type="button" class="chat-bubble-del" data-act="delete-message" data-id="${esc(m.id)}" title="Delete message">${svgIcon('trash')}</button>` : ''}</div>`;
       }).join('');
 
   return `
@@ -2173,11 +2358,11 @@ function renderChatThread(contactId){
       </div>
       <div class="chat-messages" id="chat-scroll">${bubbles}</div>
       ${state.chatError ? `<div class="blocked-note">${esc(state.chatError)}</div>` : ''}
-      ${isBlocked ? `<div class="blocked-note">Message bhej nahi sakte — block hai.</div>` : `
+      ${isBlocked ? `<div class="blocked-note">You cannot send a message — blocked.</div>` : `
       <div class="chat-input-row">
         <button type="button" class="chat-attach-btn" data-act="pick-chat-file" ${state.chatUploading?'disabled':''}>${svgIcon('clip')}</button>
         <input id="chat-file-input" type="file" accept="image/*,application/pdf" hidden />
-        <input id="chat-text-input" placeholder="${state.chatUploading ? 'Bhej rahe hain…' : 'Message likhein…'}" value="${esc(state.chatText)}" ${state.chatUploading?'disabled':''} />
+        <input id="chat-text-input" placeholder="${state.chatUploading ? 'Sending…' : 'Write a message…'}" value="${esc(state.chatText)}" ${state.chatUploading?'disabled':''} />
         <button type="button" class="chat-send-btn" data-act="send-chat" ${state.chatUploading?'disabled':''}>${svgIcon('send')}</button>
       </div>`}
     </div>
@@ -2199,7 +2384,7 @@ function renderHome(){
   });
 
   const posts = visible.length === 0
-    ? `<div class="empty-state">Abhi koi post nahi hai. Sabse pehle share karein!</div>`
+    ? `<div class="empty-state">No posts yet. Be the first to share!</div>`
     : visible.map(p => {
         const liked = p.likes.includes(state.session);
         const clickable = p.idCard !== state.session;
@@ -2210,9 +2395,9 @@ function renderHome(){
             <div class="avatar" style="width:34px;height:34px;${clickable?'cursor:pointer':''}" ${clickable?`data-act="open-profile" data-id="${esc(p.idCard)}"`:''}>${p.photo ? `<img src="${p.photo}"/>` : svgIcon('user').replace('currentColor','var(--ink-soft)')}</div>
             <div class="post-headtext" ${clickable?`data-act="open-profile" data-id="${esc(p.idCard)}" style="cursor:pointer"`:''}>
               <div class="post-name">${esc(p.name)} ${verifiedBadge(posterProfile)}</div>
-              <div class="post-meta">Class ${esc(p.class)} · Sec ${esc(p.section)} · ${timeAgo(p.time)}</div>
+              <div class="post-meta">${esc(p.class) || '—'}${p.section ? ' · Sec ' + esc(p.section) : ''} · ${timeAgo(p.time)}</div>
             </div>
-            <span class="section-pill" style="background:${SECTION_COLOR[p.section]||'var(--navy)'}">${esc(p.section)}</span>
+            ${p.section ? `<span class="section-pill" style="background:${SECTION_COLOR[p.section]||'var(--navy)'}">${esc(p.section)}</span>` : ''}
             ${p.idCard === state.session ? `<button type="button" class="btn-ghost" data-act="delete-post" data-id="${p.id}" style="padding:6px 8px;margin-left:6px">${svgIcon('trash') || 'Delete'}</button>` : ''}
           </div>
           ${p.text ? `<div class="post-text">${esc(p.text)}</div>` : ''}
@@ -2227,7 +2412,7 @@ function renderHome(){
     <div class="card composer">
       <div class="avatar" style="width:38px;height:38px">${profile.photo ? `<img src="${profile.photo}"/>` : svgIcon('user').replace('currentColor','var(--ink-soft)')}</div>
       <div class="composer-body">
-        <textarea id="composer-text" rows="2" placeholder="Kuch likhein…">${esc(c.text)}</textarea>
+        <textarea id="composer-text" rows="2" placeholder="Write something…">${esc(c.text)}</textarea>
         ${c.image ? `<div class="composer-preview"><img src="${c.image}"/><button type="button" data-act="clear-image">${svgIcon('x')}</button></div>` : ''}
         ${c.error ? `<div class="blocked-note">${esc(c.error)}</div>` : ''}
         <div class="composer-actions">
@@ -2262,7 +2447,7 @@ function renderProfile(){
           <div class="avatar" style="width:44px;height:44px">${r.photo?`<img src="${r.photo}"/>`:svgIcon('user').replace('currentColor','var(--ink-soft)')}</div>
           <div class="user-row-info">
             <div class="user-row-name">${esc(r.name)} ${verifiedBadge(r)}</div>
-            <div class="user-row-meta">Class ${esc(r.class)} · Sec ${esc(r.section)}</div>
+            <div class="user-row-meta">${esc(r.class) || '—'}${r.section?' · Sec '+esc(r.section):''}</div>
           </div>
           <div class="request-row-actions">
             <button type="button" class="follow-btn" data-act="accept-follow-request" data-id="${esc(r.idCard)}">${svgIcon('check')} Accept</button>
@@ -2284,15 +2469,19 @@ function renderProfile(){
       <div class="field">
         <label>Naam</label>
         <input id="profile-name" value="${esc(e.name)}" ${nameChangeDaysLeft(profile) > 0 ? 'disabled' : ''} />
-        <div class="verify-hint" style="margin-top:6px">${nameChangeDaysLeft(profile) > 0
-          ? `Naam abhi lock hai — dobara ${nameChangeDaysLeft(profile)} din baad badal sakte hain (misuse rokne ke liye, mahine mein sirf ek baar naam change hota hai).`
-          : `Naam badalne ke baad agla change kam se kam ${NAME_CHANGE_COOLDOWN_DAYS} din baad hi ho sakega — photo kabhi bhi badal sakte hain. Har profile ka naam poori website par unique hona zaroori hai.`}</div>
+        ${nameChangeDaysLeft(profile) > 0
+          ? `<div class="verify-hint" style="margin-top:6px">Name is locked — you can change it again in ${nameChangeDaysLeft(profile)} day(s) (to prevent misuse, the name can only be changed once a month).</div>`
+          : (e.name !== profile.name
+              ? `<div class="verify-hint" style="margin-top:6px">After changing your name, the next change will only be possible after at least ${NAME_CHANGE_COOLDOWN_DAYS} days — your photo can be changed anytime. Every profile name must be unique across the website.</div>`
+              : '')}
         ${state.profileNameError ? `<div class="error-note">${esc(state.profileNameError)}</div>` : ''}
       </div>
-      <div class="chip-row">
-        <div class="chip"><div class="chip-label">Class</div><div class="chip-value">${esc(profile.class)}</div></div>
+      <div class="chip-row" ${profile.role === 'admin' ? 'style="grid-template-columns:1fr"' : ''}>
+        ${profile.role === 'admin'
+          ? `<div class="chip"><div class="chip-label">Designation</div><div class="chip-value">${esc(profile.subject)}</div></div>`
+          : `<div class="chip"><div class="chip-label">Class</div><div class="chip-value">${esc(profile.class)}</div></div>
         <div class="chip"><div class="chip-label">Section</div><div class="chip-value">${esc(profile.section)}</div></div>
-        <div class="chip"><div class="chip-label">Subject</div><div class="chip-value">${esc(profile.subject)}</div></div>
+        <div class="chip"><div class="chip-label">Subject</div><div class="chip-value">${esc(profile.subject)}</div></div>`}
       </div>
       <div class="stat-row">
         <div class="stat-box"><div class="stat-num">${(profile.followers||[]).length}</div><div class="stat-label">Followers</div></div>
@@ -2404,8 +2593,8 @@ function renderAdmin(){
 
   return `
     <div class="card" style="margin-bottom:14px">
-      <div class="profile-note">School ki official ID card whitelist</div>
-      <div class="verify-hint" style="margin-bottom:12px">Sirf isi list mein maujood "S R No." se hi naya student account ban sakta hai — aur uski Class/Section bhi yahin se tay hoti hai, student khud nahi chun sakta. Isliye Class 10 se neeche ka koi student "Class 10" bolkar register nahi kar sakta.</div>
+      <div class="profile-note">Pre-approved serial number list</div>
+      <div class="verify-hint" style="margin-bottom:12px">Only serial numbers added here can register — anyone else trying to sign up will be blocked. Class/Course is chosen by the student themself; the fields below are just for your own record.</div>
       <div class="stat-row">
         <div class="stat-box"><div class="stat-num">${validIdList.length}</div><div class="stat-label">Whitelist mein</div></div>
         <div class="stat-box"><div class="stat-num">${validIdList.filter(id=>registeredIds.has(id)).length}</div><div class="stat-label">Registered</div></div>
@@ -2415,29 +2604,22 @@ function renderAdmin(){
     <div class="card" style="margin-bottom:14px">
       <div class="profile-note">Ek ID number add karein</div>
       <div class="field">
-        <label>School ID Card Number</label>
+        <label>Serial Number</label>
         <input id="admin-add-id" placeholder="jaise: 11851" value="${esc(state.adminAddId)}" />
       </div>
       <div class="row2">
         <div class="field">
-          <label>Class</label>
-          <select id="admin-add-class">
-            <option value="">Chuniye</option>
-            ${[10,11,12].map(c=>`<option value="${c}" ${state.adminAddClass==String(c)?'selected':''}>Class ${c}</option>`).join('')}
-          </select>
+          <label>Class / Course (optional)</label>
+          <input id="admin-add-class" placeholder="jaise: 12 ya BA" value="${esc(state.adminAddClass)}" />
         </div>
         <div class="field">
-          <label>Section</label>
-          <select id="admin-add-section">
-            <option value="A" ${state.adminAddSection==='A'?'selected':''}>A</option>
-            <option value="B" ${state.adminAddSection==='B'?'selected':''}>B</option>
-          </select>
+          <label>Section (optional)</label>
+          <input id="admin-add-section" placeholder="jaise: A" value="${esc(state.adminAddSection)}" />
         </div>
       </div>
       <div class="field">
-        <label>Passing Year — sirf Class 12 ke liye (optional)</label>
+        <label>Passing Year (optional)</label>
         <input id="admin-add-passyear" placeholder="jaise: 2028" value="${esc(state.adminAddPassYear)}" />
-        <div class="verify-hint" style="margin-top:6px">Agar yeh Class 12 ka student hai to yahan uska passing year daal dein — us saal ki July se uska account automatically band ho jaayega. Class 10/11 ke liye ise khaali chhod dein.</div>
       </div>
       ${state.adminError ? `<div class="error-note">${esc(state.adminError)}</div>` : ''}
       <button type="button" class="btn-primary" data-act="admin-add-id" ${state.adminBusy?'disabled':''}>${svgIcon('check')} ${state.adminBusy?'Add ho raha hai…':'Add karein'}</button>
@@ -2447,8 +2629,8 @@ function renderAdmin(){
       <div class="profile-note">Ek saath bahut se number add karein</div>
       <div class="field">
         <label>Har line mein: ID,Class,Section,PassingYear</label>
-        <textarea id="admin-bulk-ids" rows="5" placeholder="11851,10,A&#10;11852,11,B&#10;11853,12,A,2028">${esc(state.adminBulkIds)}</textarea>
-        <div class="verify-hint" style="margin-top:6px">Format: ek line mein ek student — <code>ID,Class,Section,PassingYear</code>, jaise <code>11851,10,A</code> ya Class 12 ke liye <code>11853,12,A,2028</code>. Section na likhein to A maan liya jaayega, PassingYear sirf Class 12 ke liye zaroori hai (baaki ke liye khaali chhod dein).</div>
+        <textarea id="admin-bulk-ids" rows="5" placeholder="11851,10,A&#10;11852,BA,&#10;11853,12,A,2028">${esc(state.adminBulkIds)}</textarea>
+        <div class="verify-hint" style="margin-top:6px">Format: ek line mein ek entry — <code>ID,Class,Section,PassingYear</code>. Class/Section/PassingYear sabhi optional hain, sirf record ke liye.</div>
       </div>
       <button type="button" class="btn-primary" data-act="admin-bulk-add" ${state.adminBusy?'disabled':''}>${svgIcon('check')} ${state.adminBusy?'Add ho raha hai…':'Sabko add karein'}</button>
     </div>
@@ -2462,6 +2644,22 @@ function renderAdmin(){
 function bindEvents(){
   const on = (sel, ev, fn) => { const el = root.querySelector(sel); if (el) el.addEventListener(ev, fn); };
   const onAll = (sel, ev, fn) => root.querySelectorAll(sel).forEach(el => el.addEventListener(ev, fn));
+
+  if (!state.session && state.introStep){
+    on('#intro-agree-checkbox', 'change', e => { state.introChecked = e.target.checked; render(); });
+    on('[data-act="intro-next"]', 'click', () => {
+      if (!state.introChecked) return;
+      state.introStep = 'about'; state.introChecked = false; render();
+    });
+    on('[data-act="intro-back"]', 'click', () => { state.introStep = 'terms'; state.introChecked = true; render(); });
+    on('[data-act="intro-done"]', 'click', () => {
+      if (!state.introChecked) return;
+      state.introStep = null;
+      try { sessionStorage.setItem('fc_intro_seen', '1'); } catch(e){}
+      render();
+    });
+    return;
+  }
 
   if (!state.session){
     on('[data-act="mode-login"]', 'click', () => { state.authMode='login'; state.authError=''; render(); });
@@ -2478,6 +2676,7 @@ function bindEvents(){
     on('#create-password', 'input', e => { state.authForm.password = e.target.value; });
     on('#create-name', 'input', e => { state.authForm.name = e.target.value; });
     on('#create-subject', 'input', e => { state.authForm.subject = e.target.value; });
+    on('#create-class', 'change', e => { state.authForm.klass = e.target.value; });
     on('#create-admincode', 'input', e => { state.authForm.adminCode = e.target.value; });
     on('[data-act="pick-photo"]', 'click', () => root.querySelector('#create-photo-input').click());
     on('#create-photo-input', 'change', async e => {
@@ -2583,6 +2782,13 @@ function bindEvents(){
     on('[data-act="note-add"]', 'click', addNote);
     onAll('[data-act="note-toggle"]', 'click', e => toggleNote(Number(e.currentTarget.dataset.id)));
     onAll('[data-act="note-delete"]', 'click', e => deleteNote(Number(e.currentTarget.dataset.id)));
+    on('#flashcard-q', 'input', e => { state.flashcardForm.q = e.target.value; });
+    on('#flashcard-a', 'input', e => { state.flashcardForm.a = e.target.value; });
+    on('[data-act="flashcard-add"]', 'click', addFlashcard);
+    on('[data-act="flashcard-flip"]', 'click', () => { state.flashcardFlipped = !state.flashcardFlipped; render(); });
+    on('[data-act="flashcard-prev"]', 'click', () => navFlashcard(-1));
+    on('[data-act="flashcard-next"]', 'click', () => navFlashcard(1));
+    onAll('[data-act="flashcard-delete"]', 'click', e => deleteFlashcard(Number(e.currentTarget.dataset.id)));
     // unit converter
     onAll('[data-act="uc-cat"]', 'click', e => {
       const cat = e.currentTarget.dataset.val;
@@ -2643,8 +2849,8 @@ function bindEvents(){
     on('#chat-search-input', 'input', e => { state.chatSearchQuery = e.target.value; render(); });
   } else if (state.tab === 'admin'){
     on('#admin-add-id', 'input', e => state.adminAddId = e.target.value);
-    on('#admin-add-class', 'change', e => state.adminAddClass = e.target.value);
-    on('#admin-add-section', 'change', e => state.adminAddSection = e.target.value);
+    on('#admin-add-class', 'input', e => state.adminAddClass = e.target.value);
+    on('#admin-add-section', 'input', e => state.adminAddSection = e.target.value);
     on('#admin-add-passyear', 'input', e => state.adminAddPassYear = e.target.value);
     on('#admin-bulk-ids', 'input', e => state.adminBulkIds = e.target.value);
     on('[data-act="admin-add-id"]', 'click', handleAdminAddId);
@@ -2677,9 +2883,9 @@ async function handleLogin(){
   const id = (state.authForm.idCard || '').trim().toUpperCase();
   const password = state.authForm.password || '';
   state.authError = '';
-  if (!id) { state.authError = 'ID card number daaliye.'; return render(); }
-  if (!parseIdCard(id)) { state.authError = 'ID card number galat hai. Apne school ID card par likha "S R No." daaliye (sirf number, jaise 11851).'; return render(); }
-  if (!password) { state.authError = 'Password daaliye.'; return render(); }
+  if (!id) { state.authError = 'Please enter your ID card number.'; return render(); }
+  if (!parseIdCard(id)) { state.authError = 'ID card number is invalid. Enter your serial number (numbers only, e.g. 11851).'; return render(); }
+  if (!password) { state.authError = 'Please enter your password.'; return render(); }
   state.authBusy = true; render();
   try {
     await withTimeout(auth.signInWithEmailAndPassword(emailForId(id), password), 15000);
@@ -2698,40 +2904,29 @@ async function handleCreate(){
   const isAdmin = f.role === 'admin';
   state.authError = '';
 
-  if (!id) { state.authError = 'ID card number daaliye.'; return render(); }
+  if (!id) { state.authError = 'Please enter your ID card number.'; return render(); }
   const parsedId = parseIdCard(id);
-  if (!parsedId) { state.authError = 'ID card number galat hai. Apne school ID card par likha "S R No." daaliye (sirf number, jaise 11851).'; return render(); }
-  if (!password || password.length < 6) { state.authError = 'Password kam se kam 6 character ka hona chahiye.'; return render(); }
-  if (!f.name.trim()) { state.authError = 'Naam daaliye.'; return render(); }
-  if (!f.subject.trim()) { state.authError = isAdmin ? 'Designation/subject daaliye.' : 'Subject daaliye.'; return render(); }
-  if (isAdmin && (f.adminCode || '').trim() !== ADMIN_CODE) { state.authError = 'Galat admin passcode.'; return render(); }
+  if (!parsedId) { state.authError = 'ID card number is invalid. Enter your serial number (numbers only, e.g. 11851).'; return render(); }
+  if (!password || password.length < 6) { state.authError = 'Password must be at least 6 characters long.'; return render(); }
+  if (!f.name.trim()) { state.authError = 'Please enter your name.'; return render(); }
+  if (!isAdmin && !(f.klass || '').trim()) { state.authError = 'Please select your Class / Course.'; return render(); }
+  if (!f.subject.trim()) { state.authError = isAdmin ? 'Please enter your designation/subject.' : 'Please enter your subject.'; return render(); }
+  if (isAdmin && (f.adminCode || '').trim() !== ADMIN_CODE) { state.authError = 'Incorrect admin passcode.'; return render(); }
 
   state.authBusy = true; render();
   signupInFlight = true;
   try {
-    /* Student ke liye asli verification: ID card number school ki official
-       whitelist ('validIds' collection) mein hona zaroori hai. IMPORTANT —
-       is student ki Class aur Section KABHI form se nahi li jaati; wo
-       hamesha admin ne whitelist mein jo record daala hai wahi se aati hai.
-       Isse koi bhi student dropdown mein "Class 10" chunkar apni asli
-       (Class 6-9) umar chhupa nahi sakta — kyunki ab dropdown hai hi nahi,
-       aur class server-side (Firestore) record se tay hoti hai, client se
-       nahi. */
-    let studentClass = '', studentSection = '', studentPassYear = null;
+    /* Admin approval gate: student sirf tabhi register kar sakta hai jab
+       uska serial number admin ne pehle 'validIds' whitelist mein add
+       kiya ho. Class/Course student khud dropdown se choose karta hai —
+       whitelist sirf ye check karta hai ki serial number allowed hai ya nahi. */
+    const studentClass = isAdmin ? '' : (f.klass || '').trim();
+    const studentSection = '';
+    const studentPassYear = null;
     if (!isAdmin){
       const validDoc = await withStep('validIds-read', () => withTimeout(db.collection('validIds').doc(id).get(), 15000));
       if (!validDoc.exists) {
-        state.authError = 'Yeh ID card number FFC ki official list mein register nahi hai. School office/admin se apna number confirm karwa kar dobara try karein.';
-        state.authBusy = false;
-        return render();
-      }
-      const record = validDoc.data() || {};
-      studentClass = String(record.class || '');
-      studentSection = record.section || 'A';
-      studentPassYear = record.passYear || null;
-      const classNum = parseInt(studentClass, 10);
-      if (!studentClass || isNaN(classNum) || classNum < 10) {
-        state.authError = 'Yeh website sirf Class 10 aur usse upar ke students ke liye chalu hai. School record ke mutabik yeh ID card Class 10 se neeche ke liye hai, isliye register nahi ho sakta.';
+        state.authError = 'This serial number has not been added by the admin yet. Please contact the admin to add it first, then try again.';
         state.authBusy = false;
         return render();
       }
@@ -2761,7 +2956,7 @@ async function handleCreate(){
          delete kar dete hain, taaki koi orphan/adhoora account na bache. */
       const profilesSnap = await withStep('user-cap-check', () => withAuthRetry(() => withTimeout(db.collection('profiles').get(), 15000)));
       if (profilesSnap.size >= MAX_TOTAL_USERS) {
-        state.authError = `FFC College Network par register hone ki limit (${MAX_TOTAL_USERS} users) poori ho chuki hai. Naye account is waqt nahi ban sakte — school admin se sampark karein.`;
+        state.authError = `SeniorCircle's registration limit (${MAX_TOTAL_USERS} users) has been reached. New accounts cannot be created right now — please contact an admin.`;
         try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
         state.authBusy = false;
         return render();
@@ -2775,7 +2970,7 @@ async function handleCreate(){
          kar dete hain, taaki koi orphan/adhoora account na bache. */
       const nameTaken = await withStep('name-check', () => nameAlreadyTaken(f.name.trim(), id, true));
       if (nameTaken) {
-        state.authError = 'Yeh naam pehle se kisi aur (student ya admin) ke profile mein use ho raha hai. Kripya thoda alag naam try karein (jaise surname/middle name add karke).';
+        state.authError = 'This name is already in use in another (student or admin) profile. Please try a slightly different name (e.g. add a surname/middle name).';
         try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
         state.authBusy = false;
         return render();
@@ -2792,7 +2987,7 @@ async function handleCreate(){
          kar sake. */
       const existingProfile = await withStep('existing-profile-check', () => withAuthRetry(() => withTimeout(db.collection('profiles').doc(id).get(), 15000)));
       if (existingProfile.exists) {
-        state.authError = 'Is ID card number ka ek purana profile record pehle se maujood hai. Kripya school admin se sampark karein taaki wo purana record clear karke aapko dobara register karwa sakein.';
+        state.authError = 'An old profile record for this ID card number already exists. Please contact an admin so they can clear the old record and let you register again.';
         try { await cred.user.delete(); } catch(delErr){ try { await auth.signOut(); } catch(e2){} }
         state.authBusy = false;
         return render();
@@ -2800,7 +2995,7 @@ async function handleCreate(){
 
       const photoUrl = await withTimeout(uploadDataUrl(f.photo, 'profile-photos', cred.user.uid), 20000).catch(() => '');
       const newProfile = isAdmin
-        ? { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:'Staff', section:'', subject:f.subject.trim(), role:'admin', following:[], followers:[], blocked:[], followRequests:[], verified:true, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' }
+        ? { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:'Admin', section:'', subject:f.subject.trim(), role:'admin', following:[], followers:[], blocked:[], followRequests:[], verified:true, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' }
         : { idCard:id, uid: cred.user.uid, name:f.name.trim(), photo:photoUrl, class:studentClass, section:studentSection, passYear:studentPassYear, subject:f.subject.trim(), role:'student', following:[], followers:[], blocked:[], followRequests:[], verified:false, verificationRequested:false, marksheetPercent:null, marksheetPhoto:'' };
       /* Admin account ke liye: asli passcode-check ab Firestore Rules ke
          andar, server par hota hai (adminCodeMatches()) — client wala
@@ -2901,13 +3096,13 @@ async function handlePost(){
   if (c.image){
     const photoCheck = await checkAndBumpUsage('postPhotos', DAILY_POST_PHOTO_LIMIT);
     if (!photoCheck.allowed){
-      c.error = `Aaj ki photo upload limit (${DAILY_POST_PHOTO_LIMIT}) khatam ho gayi hai. Sirf text ke saath post karein, ya kal photo ke saath try karein.`;
+      c.error = `Today's photo upload limit (${DAILY_POST_PHOTO_LIMIT}) has been reached. Post with text only, or try again tomorrow with a photo.`;
       return render();
     }
   }
   const usageCheck = await checkAndBumpUsage('posts', DAILY_POST_LIMIT);
   if (!usageCheck.allowed){
-    c.error = `Aaj ki post limit (${DAILY_POST_LIMIT}) khatam ho gayi hai. Kal phir try karein.`;
+    c.error = `Today's post limit (${DAILY_POST_LIMIT}) has been reached. Try again tomorrow.`;
     return render();
   }
   const profile = state.profiles[state.session];
@@ -2942,7 +3137,7 @@ async function handleLike(postId){
 async function handleDeletePost(postId){
   const post = state.feed.find(p => p.id === postId);
   if (!post) return;
-  if (!confirm('Ye post delete karna chahte hain?')) return;
+  if (!confirm('Do you want to delete this post?')) return;
   const idx = state.feed.indexOf(post);
   state.feed.splice(idx, 1);
   render();
@@ -2956,7 +3151,7 @@ async function handleDeletePost(postId){
 
 async function handleDeleteMessage(messageId){
   if (!messageId || !state.chatWith) return;
-  if (!confirm('Ye message delete karna chahte hain?')) return;
+  if (!confirm('Do you want to delete this message?')) return;
   const idx = state.chatMessages.findIndex(m => m.id === messageId);
   const removed = idx > -1 ? state.chatMessages[idx] : null;
   if (idx > -1) { state.chatMessages.splice(idx, 1); render(); }
@@ -2970,7 +3165,7 @@ async function handleDeleteMessage(messageId){
 
 async function handleDeleteChat(otherId){
   if (!otherId) return;
-  if (!confirm('Ye poori chat delete karna chahte hain?')) return;
+  if (!confirm('Do you want to delete this entire chat?')) return;
   const idx = state.chatList.findIndex(c => c.otherId === otherId);
   const removed = idx > -1 ? state.chatList[idx] : null;
   if (idx > -1) state.chatList.splice(idx, 1);
@@ -3005,7 +3200,7 @@ async function handleSaveProfile(){
   if (nameChanged && !stillLocked) {
     const taken = await nameAlreadyTaken(requestedName, state.session);
     if (taken) {
-      state.profileNameError = 'Yeh naam pehle se kisi aur (student ya admin) ke profile mein use ho raha hai — koi doosra naam try karein.';
+      state.profileNameError = 'This name is already in use in another (student or admin) profile — please try a different name.';
     } else {
       nameUpdate = { name: requestedName, lastNameChangeAt: Date.now() };
     }
@@ -3025,8 +3220,8 @@ async function handleSaveProfile(){
 async function handleChangePassword(){
   const pc = state.passwordChange;
   pc.error = ''; pc.success = false;
-  if (!pc.current) { pc.error = 'Purana password daaliye.'; return render(); }
-  if (!pc.next || pc.next.length < 6) { pc.error = 'Naya password kam se kam 6 character ka hona chahiye.'; return render(); }
+  if (!pc.current) { pc.error = 'Please enter your current password.'; return render(); }
+  if (!pc.next || pc.next.length < 6) { pc.error = 'New password must be at least 6 characters long.'; return render(); }
   pc.busy = true; render();
   try {
     const user = auth.currentUser;
@@ -3145,15 +3340,13 @@ async function handleAdminAddId(){
   const klass = state.adminAddClass;
   const section = state.adminAddSection || 'A';
   state.adminError = '';
-  if (!parseIdCard(id)) { state.adminError = 'ID number galat hai — sirf 3-6 digit ka number daalein.'; return render(); }
-  const classNum = parseInt(klass, 10);
-  if (!klass || isNaN(classNum) || classNum < 10 || classNum > 12) { state.adminError = 'Class chuniye (10 se 12 ke beech) — is website ki class-gate isi field se kaam karti hai.'; return render(); }
+  if (!parseIdCard(id)) { state.adminError = 'Invalid ID number — enter a 3-6 digit number.'; return render(); }
   const rawPassYear = (state.adminAddPassYear || '').trim();
   let passYear = null;
   if (rawPassYear){
     const py = parseInt(rawPassYear, 10);
     const thisYear = new Date().getFullYear();
-    if (isNaN(py) || py < thisYear || py > thisYear + 6) { state.adminError = 'Passing year galat hai — ek theek saal daalein (jaise ' + thisYear + ' ya usse aage).'; return render(); }
+    if (isNaN(py) || py < thisYear || py > thisYear + 6) { state.adminError = 'Invalid passing year — enter a valid year (e.g. ' + thisYear + ' or later).'; return render(); }
     passYear = py;
   }
   state.adminBusy = true; render();
@@ -3180,9 +3373,8 @@ async function handleAdminBulkAdd(){
     const parts = line.split(',').map(s => s.trim());
     const id = parts[0] || '';
     const klass = parts[1] || '';
-    const section = (parts[2] || 'A').toUpperCase();
+    const section = (parts[2] || '').toUpperCase();
     const rawPassYear = parts[3] || '';
-    const classNum = parseInt(klass, 10);
     let passYear = null;
     let passYearOk = true;
     if (rawPassYear){
@@ -3190,13 +3382,13 @@ async function handleAdminBulkAdd(){
       passYearOk = !isNaN(py) && py >= thisYear && py <= thisYear + 6;
       if (passYearOk) passYear = py;
     }
-    if (parseIdCard(id) && !isNaN(classNum) && classNum >= 10 && classNum <= 12 && (section === 'A' || section === 'B') && passYearOk) {
+    if (parseIdCard(id) && passYearOk) {
       entries.push({ id, class: klass, section, passYear });
     } else {
       skipped++;
     }
   });
-  if (entries.length === 0) { state.adminError = 'Koi valid line nahi mili. Format: ID,Class,Section,PassingYear (jaise 11851,10,A).'; return render(); }
+  if (entries.length === 0) { state.adminError = 'No valid lines found. Format: ID,Class,Section,PassingYear (e.g. 11851,10,A).'; return render(); }
   state.adminError = '';
   state.adminBusy = true; render();
   try {
@@ -3208,7 +3400,7 @@ async function handleAdminBulkAdd(){
     });
     await batch.commit();
     state.adminBulkIds = '';
-    if (skipped > 0) state.adminError = `${skipped} line(s) galat format ki thi (ID,Class,Section chahiye — Class 10-12 aur Section A/B) isliye skip ho gayi.`;
+    if (skipped > 0) state.adminError = `${skipped} line(s) had an invalid format (need a valid ID number) so they were skipped.`;
   } catch(e){
     state.adminError = firebaseErrorMessage(e);
   }
@@ -3339,21 +3531,21 @@ async function handleSendChatFile(file){
   const isImage = file.type.startsWith('image/');
   const isPdf = file.type === 'application/pdf';
   if (!isImage && !isPdf){
-    state.chatError = 'Sirf photo ya PDF hi bhej sakte hain.';
+    state.chatError = 'You can only send a photo or PDF.';
     return render();
   }
   const usageCheck = await checkAndBumpUsage(isImage ? 'chatPhotos' : 'chatPdfs', isImage ? DAILY_CHAT_PHOTO_LIMIT : DAILY_CHAT_PDF_LIMIT);
   if (!usageCheck.allowed){
     state.chatError = isImage
-      ? `Aaj ki chat photo bhejne ki limit (${DAILY_CHAT_PHOTO_LIMIT}) khatam ho gayi hai. Kal phir try karein.`
-      : `Aaj ki chat PDF bhejne ki limit (${DAILY_CHAT_PDF_LIMIT}) khatam ho gayi hai. Kal phir try karein.`;
+      ? `Today's chat photo sending limit (${DAILY_CHAT_PHOTO_LIMIT}) has been reached. Try again tomorrow.`
+      : `Today's chat PDF sending limit (${DAILY_CHAT_PDF_LIMIT}) has been reached. Try again tomorrow.`;
     return render();
   }
   /* Cloudinary free plan ka bandwidth bachane ke liye size par ek seedhi
      limit — bade PDFs school office se seedhe share karein. */
   const maxBytes = isImage ? 8 * 1024 * 1024 : 5 * 1024 * 1024;
   if (file.size > maxBytes){
-    state.chatError = isImage ? 'Photo 8MB se choti honi chahiye.' : 'PDF 5MB se chota hona chahiye.';
+    state.chatError = isImage ? 'Photo must be smaller than 8MB.' : 'PDF must be smaller than 5MB.';
     return render();
   }
 
@@ -3388,7 +3580,7 @@ async function handleSendChatFile(file){
       attachment: { url, type, name: name || '' }
     });
   } catch(e){
-    state.chatError = 'Upload nahi ho paaya. Dobara try karein.';
+    state.chatError = 'Upload failed. Please try again.';
   }
   state.chatUploading = false;
   render();
@@ -3426,15 +3618,15 @@ function renderBootError(){
   <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
     <div style="max-width:420px;text-align:center;">
       <div style="font-family:'Zilla Slab',serif;font-weight:600;font-size:20px;color:var(--maroon);margin-bottom:10px;">
-        Connect nahi ho paaya
+        Could not connect
       </div>
       <div style="color:var(--ink-soft);font-size:14px;line-height:1.6;margin-bottom:16px;">
-        Yeh page load nahi ho saka — internet connection check karein, ya agar
-        aapne is HTML file ko seedha (file:// se) download karke khola hai to
-        yeh kaam nahi karega. Ise kisi web host (Firebase Hosting, GitHub Pages,
-        ya kisi bhi https server) par upload karke kholein.
+        This page failed to load — check your internet connection, or if you
+        downloaded and opened this HTML file directly (via file://), it
+        will not work that way. Upload it to a web host (Firebase Hosting, GitHub Pages,
+        or any https server) and open it from there.
       </div>
-      <button type="button" onclick="location.reload()" style="padding:11px 22px;border-radius:12px;background:var(--navy);color:#fff;font-weight:500;font-size:14px;">Dobara try karein</button>
+      <button type="button" onclick="location.reload()" style="padding:11px 22px;border-radius:12px;background:var(--navy);color:#fff;font-weight:500;font-size:14px;">Try again</button>
     </div>
   </div>`;
 }
@@ -3495,7 +3687,7 @@ setTimeout(function(){
     if (root){
       root.classList.remove('hidden');
       if (!root.innerHTML){
-        root.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:Inter,sans-serif;color:#7A2E2E;">Page load nahi ho saka. Internet check karein ya is file ko kisi web host (file:// nahi) se kholein, phir dobara try karein.</div>';
+        root.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:Inter,sans-serif;color:#7A2E2E;">Page failed to load. Check your internet connection or open this file from a web host (not file://), then try again.</div>';
       }
     }
   }
