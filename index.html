@@ -457,7 +457,7 @@ function isTimeLimitReached(){
 function usageTick(){
   const me = state.profiles[state.session];
   if (!state.session || !me || me.role !== 'student') return;
-  const onToolsNow = state.tab === 'tools' && !state.chatWith && !state.viewingProfile;
+  const onToolsNow = state.tab === 'tools' && !state.chatWith && !state.viewingProfile && !state.viewingFollowList;
   if (onToolsNow) return;
   const total = addUsageSeconds(30);
   const wasReached = state.timeLimitReached;
@@ -1395,6 +1395,7 @@ const state = {
   profileSaved: false,
   searchQuery: '',
   viewingProfile: null,
+  viewingFollowList: null,
   chatWith: null,
   chatText: '',
   chatMessages: [],
@@ -1699,7 +1700,7 @@ function renderAppShell(){
   let mainContent;
   const profile = state.profiles[state.session];
 
-  const overlay = !!(state.chatWith || state.viewingProfile);
+  const overlay = !!(state.chatWith || state.viewingProfile || state.viewingFollowList);
 
   /* Daily screen-time limit lag chuki hai — poora app block karke sirf
      yeh message aur Logout button dikhate hain. Agla din (localStorage
@@ -1731,6 +1732,8 @@ function renderAppShell(){
 
   if (state.chatWith){
     mainContent = renderChatThread(state.chatWith);
+  } else if (state.viewingFollowList){
+    mainContent = renderFollowListView(state.viewingFollowList.idCard, state.viewingFollowList.type);
   } else if (state.viewingProfile){
     mainContent = renderProfileView(state.viewingProfile);
   } else if (state.tab === 'search'){
@@ -1761,7 +1764,7 @@ function renderAppShell(){
       <button type="button" class="nav-btn ${!overlay && state.tab==='home'?'active':''}" data-act="tab-home">${svgIcon('home')}<span>Home</span></button>
       <button type="button" class="nav-btn ${!overlay && state.tab==='search'?'active':''}" data-act="tab-search">${svgIcon('search')}<span>Search</span></button>
       <button type="button" class="nav-btn ${!overlay && state.tab==='tools'?'active':''}" data-act="tab-tools">${svgIcon('tools')}<span>Tools</span></button>
-      <button type="button" class="nav-btn ${!state.viewingProfile && state.tab==='chat'?'active':''}" data-act="tab-chat">
+      <button type="button" class="nav-btn ${!state.viewingProfile && !state.viewingFollowList && state.tab==='chat'?'active':''}" data-act="tab-chat">
         <span style="position:relative">${svgIcon('chatIcon')}${unreadChatCount() > 0 ? `<span class="nav-badge">${unreadChatCount() > 9 ? '9+' : unreadChatCount()}</span>` : ''}</span>
         <span>Chat</span>
       </button>
@@ -2264,8 +2267,8 @@ function renderProfileView(idCard){
     <div class="profile-card-wrap">${idCardHTML(p, 'full')}</div>
     <div class="card">
       <div class="stat-row">
-        <div class="stat-box"><div class="stat-num">${(p.followers||[]).length}</div><div class="stat-label">Followers</div></div>
-        <div class="stat-box"><div class="stat-num">${(p.following||[]).length}</div><div class="stat-label">Following</div></div>
+        <div class="stat-box" style="cursor:pointer" data-act="open-follow-list" data-id="${esc(p.idCard)}" data-type="followers"><div class="stat-num">${(p.followers||[]).length}</div><div class="stat-label">Followers</div></div>
+        <div class="stat-box" style="cursor:pointer" data-act="open-follow-list" data-id="${esc(p.idCard)}" data-type="following"><div class="stat-num">${(p.following||[]).length}</div><div class="stat-label">Following</div></div>
         <div class="stat-box"><div class="stat-num">${myPostsCount}</div><div class="stat-label">Posts</div></div>
       </div>
       ${blockedMe ? `<div class="blocked-note">This student cannot contact you.</div>` : `
@@ -2279,6 +2282,52 @@ function renderProfileView(idCard){
     </div>
     ${blockedMe ? '' : `<div style="margin-top:14px">${postsHtml}</div>`}
   `;
+}
+
+function renderFollowListView(idCard, type){
+  const p = state.profiles[idCard];
+  if (!p) return `<div class="empty-state">Profile not found.</div>`;
+  const me = state.profiles[state.session];
+  const isOwner = idCard === state.session;
+  const meFollowsThem = (me.following||[]).includes(idCard);
+  const title = type === 'followers' ? 'Followers' : 'Following';
+  const headerName = isOwner ? 'Your' : `${esc(p.name)}'s`;
+
+  const backRow = `<div class="back-row"><button type="button" class="back-btn" data-act="close-follow-list">${svgIcon('back')}</button><div style="font-weight:600;font-size:14px">${headerName} ${title}</div></div>`;
+
+  /* Private account: sirf owner ya usके followers hi list dekh sakte hain —
+     baaki koi bhi ye na dekh paye ki kaun kis private account ko follow karta hai. */
+  const locked = p.privateAccount && !isOwner && !meFollowsThem;
+  if (locked){
+    return `${backRow}<div class="empty-state">${svgIcon('shield')}<br/>This account is private. Follow to see their ${title.toLowerCase()}.</div>`;
+  }
+
+  const ids = (type === 'followers' ? p.followers : p.following) || [];
+  const list = ids.map(id => state.profiles[id]).filter(Boolean).sort((a,b)=>a.name.localeCompare(b.name));
+
+  if (list.length === 0){
+    return `${backRow}<div class="empty-state">No ${title.toLowerCase()} yet.</div>`;
+  }
+
+  const rows = list.map(u => {
+    const isFollowing = (me.following||[]).includes(u.idCard);
+    const isRequested = !isFollowing && (u.followRequests||[]).includes(state.session);
+    const isSelf = u.idCard === state.session;
+    return `
+    <div class="user-row">
+      <div class="avatar" style="width:44px;height:44px;cursor:pointer" data-act="open-profile" data-id="${esc(u.idCard)}">${u.photo?`<img src="${u.photo}"/>`:svgIcon('user').replace('currentColor','var(--ink-soft)')}</div>
+      <div class="user-row-info" data-act="open-profile" data-id="${esc(u.idCard)}" style="cursor:pointer">
+        <div class="user-row-name">${esc(u.name)} ${verifiedBadge(u)}</div>
+        <div class="user-row-meta">${esc(u.class) || '—'}${u.section?' · Sec '+esc(u.section):''}</div>
+      </div>
+      ${isSelf ? '' : `
+      <button type="button" class="follow-btn ${isFollowing?'following':(isRequested?'requested':'')}" data-act="toggle-follow" data-id="${esc(u.idCard)}">
+        ${isFollowing ? svgIcon('userCheck')+' Following' : (isRequested ? svgIcon('userCheck')+' Requested' : svgIcon('userPlus')+' Follow')}
+      </button>`}
+    </div>`;
+  }).join('');
+
+  return `${backRow}${rows}`;
 }
 
 function renderChatList(){
@@ -2484,8 +2533,8 @@ function renderProfile(){
         <div class="chip"><div class="chip-label">Subject</div><div class="chip-value">${esc(profile.subject)}</div></div>`}
       </div>
       <div class="stat-row">
-        <div class="stat-box"><div class="stat-num">${(profile.followers||[]).length}</div><div class="stat-label">Followers</div></div>
-        <div class="stat-box"><div class="stat-num">${(profile.following||[]).length}</div><div class="stat-label">Following</div></div>
+        <div class="stat-box" style="cursor:pointer" data-act="open-follow-list" data-id="${esc(profile.idCard)}" data-type="followers"><div class="stat-num">${(profile.followers||[]).length}</div><div class="stat-label">Followers</div></div>
+        <div class="stat-box" style="cursor:pointer" data-act="open-follow-list" data-id="${esc(profile.idCard)}" data-type="following"><div class="stat-num">${(profile.following||[]).length}</div><div class="stat-label">Following</div></div>
       </div>
 
       <button type="button" class="btn-primary" data-act="save-profile">
@@ -2691,7 +2740,7 @@ function bindEvents(){
   on('[data-act="logout"]', 'click', async () => {
     if (state.timer.running) pauseTimer();
     if (state.stopwatch.running) pauseStopwatch();
-    state.profileEdit=null; state.profileNameError=''; state.viewingProfile=null; state.chatWith=null; state.chatList=[]; state.searchQuery=''; state.settingsOpen=false;
+    state.profileEdit=null; state.profileNameError=''; state.viewingProfile=null; state.viewingFollowList=null; state.chatWith=null; state.chatList=[]; state.searchQuery=''; state.settingsOpen=false;
     try { await auth.signOut(); } catch(e){}
   });
   on('[data-act="toggle-theme"]', 'click', toggleTheme);
@@ -2707,12 +2756,12 @@ function bindEvents(){
     if (state.tab === 'tools' && state.timer.running) pauseTimer();
     if (state.tab === 'tools' && state.stopwatch.running) pauseStopwatch();
   };
-  on('[data-act="tab-home"]', 'click', () => { leaveTools(); state.tab='home'; state.viewingProfile=null; state.chatWith=null; render(); fetchFeed(); });
-  on('[data-act="tab-search"]', 'click', () => { leaveTools(); state.tab='search'; state.viewingProfile=null; state.chatWith=null; render(); fetchProfiles(); });
-  on('[data-act="tab-tools"]', 'click', () => { state.tab='tools'; state.viewingProfile=null; state.chatWith=null; render(); });
-  on('[data-act="tab-chat"]', 'click', () => { leaveTools(); state.tab='chat'; state.viewingProfile=null; state.chatWith=null; render(); subscribeChatList(); fetchProfiles(); });
-  on('[data-act="tab-profile"]', 'click', () => { leaveTools(); state.tab='profile'; state.viewingProfile=null; state.chatWith=null; render(); });
-  on('[data-act="tab-admin"]', 'click', () => { leaveTools(); state.tab='admin'; state.viewingProfile=null; state.chatWith=null; render(); fetchValidIds(); });
+  on('[data-act="tab-home"]', 'click', () => { leaveTools(); state.tab='home'; state.viewingProfile=null; state.viewingFollowList=null; state.chatWith=null; render(); fetchFeed(); });
+  on('[data-act="tab-search"]', 'click', () => { leaveTools(); state.tab='search'; state.viewingProfile=null; state.viewingFollowList=null; state.chatWith=null; render(); fetchProfiles(); });
+  on('[data-act="tab-tools"]', 'click', () => { state.tab='tools'; state.viewingProfile=null; state.viewingFollowList=null; state.chatWith=null; render(); });
+  on('[data-act="tab-chat"]', 'click', () => { leaveTools(); state.tab='chat'; state.viewingProfile=null; state.viewingFollowList=null; state.chatWith=null; render(); subscribeChatList(); fetchProfiles(); });
+  on('[data-act="tab-profile"]', 'click', () => { leaveTools(); state.tab='profile'; state.viewingProfile=null; state.viewingFollowList=null; state.chatWith=null; render(); });
+  on('[data-act="tab-admin"]', 'click', () => { leaveTools(); state.tab='admin'; state.viewingProfile=null; state.viewingFollowList=null; state.chatWith=null; render(); fetchValidIds(); });
 
   if (state.chatWith){
     on('[data-act="close-chat"]', 'click', () => {
@@ -2730,11 +2779,18 @@ function bindEvents(){
     });
     return;
   }
+  if (state.viewingFollowList){
+    on('[data-act="close-follow-list"]', 'click', () => { state.viewingFollowList=null; render(); });
+    onAll('[data-act="toggle-follow"]', 'click', e => handleToggleFollow(e.currentTarget.dataset.id));
+    onAll('[data-act="open-profile"]', 'click', e => { state.viewingFollowList=null; state.viewingProfile = e.currentTarget.dataset.id; render(); });
+    return;
+  }
   if (state.viewingProfile){
     on('[data-act="close-profile"]', 'click', () => { state.viewingProfile=null; render(); });
     onAll('[data-act="toggle-follow"]', 'click', e => handleToggleFollow(e.currentTarget.dataset.id));
     onAll('[data-act="toggle-block"]', 'click', e => handleToggleBlock(e.currentTarget.dataset.id));
     onAll('[data-act="open-chat"]', 'click', e => openChat(e.currentTarget.dataset.id));
+    onAll('[data-act="open-follow-list"]', 'click', e => { state.viewingFollowList = { idCard: e.currentTarget.dataset.id, type: e.currentTarget.dataset.type }; render(); });
     return;
   }
 
@@ -2873,6 +2929,7 @@ function bindEvents(){
       render();
     });
     on('[data-act="save-profile"]', 'click', handleSaveProfile);
+    onAll('[data-act="open-follow-list"]', 'click', e => { state.viewingFollowList = { idCard: e.currentTarget.dataset.id, type: e.currentTarget.dataset.type }; render(); });
     on('#pw-current', 'input', e => { state.passwordChange.current = e.target.value; state.passwordChange.error=''; state.passwordChange.success=false; });
     on('#pw-next', 'input', e => { state.passwordChange.next = e.target.value; state.passwordChange.error=''; state.passwordChange.success=false; });
     on('[data-act="change-password"]', 'click', handleChangePassword);
